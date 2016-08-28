@@ -21,7 +21,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <errno.h>
 
 #include <signal.h>
-#include <zlib.h>
 #include <sys/resource.h>
 
 #include "utils/System.h"
