@@ -30,6 +30,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #else
 
+#   include <signal.h>
 #   include <stdint.h>
 #   include <inttypes.h>
 

@@ -36,13 +36,17 @@ using namespace Minisat;
 void printStats(Solver& solver)
 {
     double cpu_time = cpuTime();
+#   ifndef __MINGW32__
     double mem_used = memUsedPeak();
+#   endif
     fprintf(stderr, "restarts              : %"PRIu64"\n", solver.starts);
     fprintf(stderr, "conflicts             : %-12"PRIu64"   (%.0f /sec)\n", solver.conflicts   , solver.conflicts   /cpu_time);
     fprintf(stderr, "decisions             : %-12"PRIu64"   (%4.2f %% random) (%.0f /sec)\n", solver.decisions, (float)solver.rnd_decisions*100 / (float)solver.decisions, solver.decisions   /cpu_time);
     fprintf(stderr, "propagations          : %-12"PRIu64"   (%.0f /sec)\n", solver.propagations, solver.propagations/cpu_time);
     fprintf(stderr, "conflict literals     : %-12"PRIu64"   (%4.2f %% deleted)\n", solver.tot_literals, (solver.max_literals - solver.tot_literals)*100 / (double)solver.max_literals);
+#   ifndef __MINGW32__
     if (mem_used != 0) fprintf(stderr, "Memory used           : %.2f MB\n", mem_used);
+#   endif
     fprintf(stderr, "CPU time              : %g s\n", cpu_time);
 }
 
@@ -94,6 +98,7 @@ int main(int argc, char** argv)
         solver = &S;
         // Use signal handlers that forcibly quit until the solver will be able to respond to
         // interrupts:
+#       ifndef __MINGW32__
         signal(SIGINT, SIGINT_exit);
         signal(SIGXCPU,SIGINT_exit);
 
@@ -117,6 +122,7 @@ int main(int argc, char** argv)
                 if (setrlimit(RLIMIT_AS, &rl) == -1)
                     fprintf(stderr, "WARNING! Could not set resource limit: Virtual memory.\n");
             } }
+#       endif
         
         if (argc == 1)
             fprintf(stderr, "Reading from standard input... Use '--help' for help.\n");
@@ -144,8 +150,10 @@ int main(int argc, char** argv)
  
         // Change to signal-handlers that will only notify the solver and allow it to terminate
         // voluntarily:
+#       ifndef __MINGW32__
         signal(SIGINT, SIGINT_interrupt);
         signal(SIGXCPU,SIGINT_interrupt);
+#       endif
        
         if (!S.simplify()){
             if (res != NULL) fprintf(res, "UNSAT\n"), fclose(res);
