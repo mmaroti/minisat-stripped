@@ -39,11 +39,12 @@ void printStats(Solver& solver)
 #   ifndef __MINGW32__
     double mem_used = memUsedPeak();
 #   endif
-    fprintf(stderr, "restarts              : %"PRIu64"\n", solver.starts);
-    fprintf(stderr, "conflicts             : %-12"PRIu64"   (%.0f /sec)\n", solver.conflicts   , solver.conflicts   /cpu_time);
-    fprintf(stderr, "decisions             : %-12"PRIu64"   (%4.2f %% random) (%.0f /sec)\n", solver.decisions, (float)solver.rnd_decisions*100 / (float)solver.decisions, solver.decisions   /cpu_time);
-    fprintf(stderr, "propagations          : %-12"PRIu64"   (%.0f /sec)\n", solver.propagations, solver.propagations/cpu_time);
-    fprintf(stderr, "conflict literals     : %-12"PRIu64"   (%4.2f %% deleted)\n", solver.tot_literals, (solver.max_literals - solver.tot_literals)*100 / (double)solver.max_literals);
+
+    fprintf(stderr, "restarts              : %" PRIu64 "\n", solver.starts);
+    fprintf(stderr, "conflicts             : %-12" PRIu64 "   (%.0f /sec)\n", solver.conflicts   , solver.conflicts   /cpu_time);
+    fprintf(stderr, "decisions             : %-12" PRIu64 "   (%4.2f %% random) (%.0f /sec)\n", solver.decisions, (float)solver.rnd_decisions*100 / (float)solver.decisions, solver.decisions   /cpu_time);
+    fprintf(stderr, "propagations          : %-12" PRIu64 "   (%.0f /sec)\n", solver.propagations, solver.propagations/cpu_time);
+    fprintf(stderr, "conflict literals     : %-12" PRIu64 "   (%4.2f %% deleted)\n", solver.tot_literals, (solver.max_literals - solver.tot_literals)*100 / (double)solver.max_literals);
 #   ifndef __MINGW32__
     if (mem_used != 0) fprintf(stderr, "Memory used           : %.2f MB\n", mem_used);
 #   endif
@@ -52,6 +53,7 @@ void printStats(Solver& solver)
 
 
 static Solver* solver;
+#ifndef __MINGW32__
 // Terminate by notifying the solver and back out gracefully. This is mainly to have a test-case
 // for this feature of the Solver as it may take longer than an immediate call to '_exit()'.
 static void SIGINT_interrupt(int signum) { solver->interrupt(); }
@@ -65,6 +67,7 @@ static void SIGINT_exit(int signum) {
         printStats(*solver);
         fprintf(stderr,"\n"); fprintf(stderr,"*** INTERRUPTED ***\n"); }
     _exit(1); }
+#endif
 
 
 //=================================================================================================
