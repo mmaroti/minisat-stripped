@@ -279,6 +279,14 @@ class Int64Option : public Option
 
     virtual void help (bool verbose = false){
 
+#       ifndef PRIi64
+#           ifdef __MINGW32__
+#                   define PRIi64 "I64i" 
+#               else
+#                   error PRIi64 not defined
+#           endif
+#       endif
+        
         fprintf(stderr, "  -%-12s = %-8s [", name, type_name);
         if (range.begin == INT64_MIN)
             fprintf(stderr, "imin");

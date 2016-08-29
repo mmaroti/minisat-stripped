@@ -40,6 +40,14 @@ void printStats(Solver& solver)
     double mem_used = memUsedPeak();
 #   endif
 
+#   ifndef PRIi64
+#       ifdef __MINGW32__
+#           define PRIi64 "I64i" 
+#       else
+#           error PRIi64 not defined
+#       endif
+#   endif
+
     fprintf(stderr, "restarts              : %" PRIu64 "\n", solver.starts);
     fprintf(stderr, "conflicts             : %-12" PRIu64 "   (%.0f /sec)\n", solver.conflicts   , solver.conflicts   /cpu_time);
     fprintf(stderr, "decisions             : %-12" PRIu64 "   (%4.2f %% random) (%.0f /sec)\n", solver.decisions, (float)solver.rnd_decisions*100 / (float)solver.decisions, solver.decisions   /cpu_time);
