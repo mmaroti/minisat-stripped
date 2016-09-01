@@ -98,6 +98,9 @@ public:
     bool  operator != (lbool b) const { return !(*this == b); }
     lbool operator ^  (bool  b) const { return lbool((uint8_t)(value^(uint8_t)b)); }
 
+    bool  isTrue()  const { return *this == l_True;  }
+    bool  isFalse() const { return *this == l_False; }
+
     lbool operator && (lbool b) const { 
         uint8_t sel = (this->value << 1) | (b.value << 3);
         uint8_t v   = (0xF7F755F4 >> sel) & 3;
