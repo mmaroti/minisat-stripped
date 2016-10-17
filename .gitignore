@@ -1,0 +1,7 @@
+*.o
+*.od
+*.op
+*.or
+lib_*.a
+depend.mk
+minisat*
