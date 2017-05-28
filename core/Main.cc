@@ -109,7 +109,7 @@ int main(int argc, char** argv)
         solver = &S;
         // Use signal handlers that forcibly quit until the solver will be able to respond to
         // interrupts:
-#       ifndef __MINGW32__
+#       ! (defined(__MINGW32__) || defined(_MSC_VER)
         signal(SIGINT, SIGINT_exit);
         signal(SIGXCPU,SIGINT_exit);
 
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
  
         // Change to signal-handlers that will only notify the solver and allow it to terminate
         // voluntarily:
-#       ifndef __MINGW32__
+#       ! (defined(__MINGW32__) || defined(_MSC_VER)
         signal(SIGINT, SIGINT_interrupt);
         signal(SIGXCPU,SIGINT_interrupt);
 #       endif
