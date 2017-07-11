@@ -828,7 +828,7 @@ void Solver::toDimacs(const char *file, const vec<Lit>& assumps)
 }
 
 
-void Solver::toDimacs(FILE* f, const vec<Lit>& assumps)
+void Solver::toDimacs(FILE* f, const vec<Lit>&)
 {
     // Handle case when solver is in contradictory state:
     if (!ok){
