@@ -1,9 +1,5 @@
 language: c++
 script: ./buildall.sh
-dist:
-  - xenial
-  - jessie
-  - stretch
 compiler:
   - clang
   - gcc
