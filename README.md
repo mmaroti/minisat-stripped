@@ -10,8 +10,8 @@ a production-ready version of the famous library.
 - Keep the algorithm intact.
 - Adapt for the modern C++ 2011 & 2014 standard.
 - Support GCC, LLVM and MSVC.
-- Support for Linux, Windows native and MinGW/MSYS.
-- Remove complier warnings (-Wall -Wextra).
+- Support Linux, Windows native and MinGW/MSYS.
+- Remove complier warnings (`-Wall -Wextra`).
 - Ensure code quality by automated build and tests.
 - Clean the std. output and error output.
 
@@ -30,12 +30,12 @@ Keen to help? Feel free to fork!
 Directory overview
 ------------------
 
-`minisat/mtl`     Mini Template Library
-`minisat/utils`   Generic helper code (I/O, Parsing, CPU-time, etc)
-`minisat/core`    A core version of the solver
-`minisat/simp`    An extended solver with simplification capabilities
-`README.md`       This read-me file
-`LICENSE`         Licence files
+- `minisat/mtl`     Mini Template Library
+- `minisat/utils`   Generic helper code (I/O, Parsing, CPU-time, etc)
+- `minisat/core`    A core version of the solver
+- `minisat/simp`    An extended solver with simplification capabilities
+- `README.md`       This read-me file
+- `LICENSE`         Licence files
 
 
 
@@ -43,8 +43,8 @@ Building
 --------
 
 ### a) Quick way
-```
-$ ./buildall.sh
+```bash
+./buildall.sh
 ```
 
 
@@ -53,7 +53,7 @@ $ ./buildall.sh
 Release version: without assertions, statically linked, etc
 
 ```bash
-export MROOT=<minisat-dir> # or `setenv` in cshell)
+export MROOT=<minisat-dir> # or `setenv` in cshell
 cd minisat
 cd { core | simp }
 make rs
