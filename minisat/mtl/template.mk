@@ -9,7 +9,7 @@ PWD        = $(shell pwd)
 EXEC      ?= $(notdir $(PWD))
 
 CSRCS      = $(wildcard $(PWD)/*.cc) 
-DSRCS      = $(foreach dir, $(DEPDIR), $(filter-out $(MROOT)/$(dir)/Main.cc, $(wildcard $(MROOT)/$(dir)/*.cc)))
+DSRCS      = $(foreach dir, $(DEPDIR), $(filter-out $(MROOT)/minisat/$(dir)/Main.cc, $(wildcard $(MROOT)/minisat/$(dir)/*.cc)))
 CHDRS      = $(wildcard $(PWD)/*.h)
 COBJS      = $(CSRCS:.cc=.o) $(DSRCS:.cc=.o)
 
@@ -24,7 +24,7 @@ LFLAGS    ?= -Wall
 
 COPTIMIZE ?= -O3
 
-CFLAGS    += -I$(MROOT)/.. -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
+CFLAGS    += -I$(MROOT) -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
 
 .PHONY : s p d r rs clean 
 
@@ -96,11 +96,11 @@ depend.mk: $(CSRCS) $(CHDRS)
 	@$(CXX) $(CFLAGS) -I$(MROOT) \
 	   $(CSRCS) -MM | sed 's|\(.*\): |$(PWD)/\1 $(PWD)/\1r $(PWD)/\1d $(PWD)/\1p: |' > depend.mk
 	@for dir in $(DEPDIR); do \
-	      if [ -r $(MROOT)/$${dir}/depend.mk ]; then \
+	      if [ -r $(MROOT)/minisat/$${dir}/depend.mk ]; then \
 		  echo Depends on: $${dir}; \
-		  cat $(MROOT)/$${dir}/depend.mk >> depend.mk; \
+		  cat $(MROOT)/minisat/$${dir}/depend.mk >> depend.mk; \
 	      fi; \
 	  done
 
--include $(MROOT)/mtl/config.mk
+-include $(MROOT)/minisat/mtl/config.mk
 -include depend.mk
