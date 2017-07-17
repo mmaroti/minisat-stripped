@@ -1,10 +1,14 @@
 #!/bin/bash -e
 export MROOT=`pwd`
 
-cd core
-make s p d r rs
-cd ..
+for DIR in core simp
+do
+  cd $DIR
 
-cd simp
-make s p d r rs
-cd ..
+  for BIN in s p d r rs libs libp libd libr
+  do
+    make $BIN
+  done
+
+  cd ..
+done
