@@ -1,5 +1,8 @@
 language: c++
 script: ./buildall.sh
+os:
+  - linux
+  - osx
 compiler:
   - clang
   - gcc
