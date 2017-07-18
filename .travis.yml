@@ -1,5 +1,5 @@
 language: c++
-script: ./buildall.sh
+script: ./build.sh
 compiler:
   - clang
   - gcc

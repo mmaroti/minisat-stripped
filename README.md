@@ -44,7 +44,7 @@ Building
 
 ### a) Quick way
 ```bash
-./buildall.sh
+./build.sh
 ```
 
 
