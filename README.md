@@ -3,7 +3,7 @@ Production-ready MiniSAT
 
 [![Build Status](https://travis-ci.org/cernoch/minisat.svg?branch=master)](https://travis-ci.org/cernoch/minisat)
 
-Forked off MiniSAT 2.2.0, this repository aims at providing
+Forked off MiniSAT 2.2, this repository aims at providing
 a production-ready version of the famous library.
 
 ### Key principles:
@@ -11,7 +11,7 @@ a production-ready version of the famous library.
 - Adapt for the modern C++ 2011 & 2014 standard.
 - Support GCC, LLVM and MSVC.
 - Support Linux, Windows native and MinGW/MSYS.
-- Remove complier warnings (`-Wall -Wextra`).
+- Fix complier warnings (`-Wall -Wextra`).
 - Ensure code quality by automated build and tests.
 - Clean the std. output and error output.
 
