@@ -64,12 +64,12 @@ static Solver* solver;
 #ifndef __MINGW32__
 // Terminate by notifying the solver and back out gracefully. This is mainly to have a test-case
 // for this feature of the Solver as it may take longer than an immediate call to '_exit()'.
-static void SIGINT_interrupt(int signum) { solver->interrupt(); }
+static void SIGINT_interrupt(int) { solver->interrupt(); }
 
 // Note that '_exit()' rather than 'exit()' has to be used. The reason is that 'exit()' calls
 // destructors and may cause deadlocks if a malloc/free function happens to be running (these
 // functions are guarded by locks for multithreaded use).
-static void SIGINT_exit(int signum) {
+static void SIGINT_exit(int) {
     fprintf(stderr, "\n"); fprintf(stderr, "*** INTERRUPTED ***\n");
     if (solver->verbosity > 0){
         printStats(*solver);
