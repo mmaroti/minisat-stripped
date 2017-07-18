@@ -5,7 +5,7 @@ for DIR in core simp
 do
   cd $DIR
 
-  for BIN in p d r rs
+  for BIN in s p d r
   do
     make $BIN
   done
@@ -17,7 +17,7 @@ do
 
   if [[ "$TRAVIS_OS_NAME" != "osx" ]]
   then
-    make s
+    make rs
   fi
 
   cd ..
