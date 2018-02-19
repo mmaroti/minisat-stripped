@@ -35,7 +35,7 @@ void Minisat::parseOptions(int& argc, char** argv, bool strict)
                 printUsageAndExit(argc, argv, true);
         } else {
             bool parsed_ok = false;
-        
+
             for (int k = 0; !parsed_ok && k < Option::getOptionList().size(); k++){
                 parsed_ok = Option::getOptionList()[k]->parse(argv[i]);
 
@@ -57,6 +57,7 @@ void Minisat::parseOptions(int& argc, char** argv, bool strict)
 
 void Minisat::setUsageHelp      (const char* str){ Option::getUsageString() = str; }
 void Minisat::setHelpPrefixStr  (const char* str){ Option::getHelpPrefixString() = str; }
+
 void Minisat::printUsageAndExit (int, char** argv, bool verbose)
 {
     const char* usage = Option::getUsageString();
@@ -90,3 +91,192 @@ void Minisat::printUsageAndExit (int, char** argv, bool verbose)
     exit(0);
 }
 
+Minisat::Option::~Option() = default;
+
+bool Minisat::DoubleOption::parse(const char * str) {
+    const char* span = str;
+
+    if (!match(span, "-") || !match(span, name) || !match(span, "="))
+        return false;
+
+    char*  end;
+    double tmp = strtod(span, &end);
+
+    if (end == NULL)
+        return false;
+    else if (tmp >= range.end && (!range.end_inclusive || tmp != range.end)) {
+        fprintf(stderr, "ERROR! value <%s> is too large for option \"%s\".\n", span, name);
+        exit(1);
+    } else if (tmp <= range.begin && (!range.begin_inclusive || tmp != range.begin)) {
+        fprintf(stderr, "ERROR! value <%s> is too small for option \"%s\".\n", span, name);
+        exit(1);
+    }
+
+    value = tmp;
+    // fprintf(stderr, "READ VALUE: %g\n", value);
+
+    return true;
+}
+
+void Minisat::DoubleOption::help(bool verbose) {
+    fprintf(stderr, "  -%-12s = %-8s %c%4.2g .. %4.2g%c (default: %g)\n",
+            name, type_name,
+            range.begin_inclusive ? '[' : '(',
+            range.begin,
+            range.end,
+            range.end_inclusive ? ']' : ')',
+            value);
+    if (verbose) {
+        fprintf(stderr, "\n        %s\n", description);
+        fprintf(stderr, "\n");
+    }
+}
+
+bool Minisat::IntOption::parse(const char * str) {
+    const char* span = str;
+
+    if (!match(span, "-") || !match(span, name) || !match(span, "="))
+        return false;
+
+    char*   end;
+    int32_t tmp = strtol(span, &end, 10);
+
+    if (end == NULL)
+        return false;
+    else if (tmp > range.end) {
+        fprintf(stderr, "ERROR! value <%s> is too large for option \"%s\".\n", span, name);
+        exit(1);
+    } else if (tmp < range.begin) {
+        fprintf(stderr, "ERROR! value <%s> is too small for option \"%s\".\n", span, name);
+        exit(1);
+    }
+
+    value = tmp;
+
+    return true;
+}
+
+void Minisat::IntOption::help(bool verbose) {
+    fprintf(stderr, "  -%-12s = %-8s [", name, type_name);
+    if (range.begin == INT32_MIN)
+        fprintf(stderr, "imin");
+    else
+        fprintf(stderr, "%4d", range.begin);
+
+    fprintf(stderr, " .. ");
+    if (range.end == INT32_MAX)
+        fprintf(stderr, "imax");
+    else
+        fprintf(stderr, "%4d", range.end);
+
+    fprintf(stderr, "] (default: %d)\n", value);
+    if (verbose) {
+        fprintf(stderr, "\n        %s\n", description);
+        fprintf(stderr, "\n");
+    }
+}
+
+bool Minisat::StringOption::parse(const char * str) {
+    const char* span = str;
+
+    if (!match(span, "-") || !match(span, name) || !match(span, "="))
+        return false;
+
+    value = span;
+    return true;
+}
+
+void Minisat::StringOption::help(bool verbose) {
+    fprintf(stderr, "  -%-10s = %8s\n", name, type_name);
+    if (verbose) {
+        fprintf(stderr, "\n        %s\n", description);
+        fprintf(stderr, "\n");
+    }
+}
+
+bool Minisat::BoolOption::parse(const char * str) {
+    const char* span = str;
+
+    if (match(span, "-")) {
+        bool b = !match(span, "no-");
+
+        if (strcmp(span, name) == 0) {
+            value = b;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Minisat::BoolOption::help(bool verbose) {
+
+    fprintf(stderr, "  -%s, -no-%s", name, name);
+
+    for (uint32_t i = 0; i < 32 - strlen(name) * 2; i++)
+        fprintf(stderr, " ");
+
+    fprintf(stderr, " ");
+    fprintf(stderr, "(default: %s)\n", value ? "on" : "off");
+    if (verbose) {
+        fprintf(stderr, "\n        %s\n", description);
+        fprintf(stderr, "\n");
+    }
+}
+
+ #ifndef _MSC_VER
+
+bool Minisat::Int64Option::parse(const char * str) {
+    const char* span = str;
+
+    if (!match(span, "-") || !match(span, name) || !match(span, "="))
+        return false;
+
+    char*   end;
+    int64_t tmp = strtoll(span, &end, 10);
+
+    if (end == NULL)
+        return false;
+    else if (tmp > range.end) {
+        fprintf(stderr, "ERROR! value <%s> is too large for option \"%s\".\n", span, name);
+        exit(1);
+    } else if (tmp < range.begin) {
+        fprintf(stderr, "ERROR! value <%s> is too small for option \"%s\".\n", span, name);
+        exit(1);
+    }
+
+    value = tmp;
+
+    return true;
+}
+
+void Minisat::Int64Option::help(bool verbose) {
+
+#       ifndef PRIi64
+#           ifdef __MINGW32__
+#                   define PRIi64 "I64i"
+#               else
+#                   error PRIi64 not defined
+#           endif
+#       endif
+
+    fprintf(stderr, "  -%-12s = %-8s [", name, type_name);
+    if (range.begin == INT64_MIN)
+        fprintf(stderr, "imin");
+    else
+        fprintf(stderr, "%4" PRIi64, range.begin);
+
+    fprintf(stderr, " .. ");
+    if (range.end == INT64_MAX)
+        fprintf(stderr, "imax");
+    else
+        fprintf(stderr, "%4" PRIi64, range.end);
+
+    fprintf(stderr, "] (default: %" PRIi64 ")\n", value);
+    if (verbose) {
+        fprintf(stderr, "\n        %s\n", description);
+        fprintf(stderr, "\n");
+    }
+}
+
+ #endif
