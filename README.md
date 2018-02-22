@@ -1,7 +1,7 @@
 Production-ready MiniSAT
 ========================
 
-[![Build Status](https://travis-ci.org/cernoch/minisat.svg?branch=master)](https://travis-ci.org/cernoch/minisat)
+[![Build Status](https://travis-ci.org/master-keying/minisat.svg?branch=master)](https://travis-ci.org/master-keying/minisat)
 
 Forked off MiniSAT 2.2, this repository aims at providing
 a production-ready version of the famous library.
