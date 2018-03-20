@@ -4,3 +4,5 @@
 ##
 ##  CFLAGS += -I/usr/local/include
 ##  LFLAGS += -L/usr/local/lib
+
+CFLAGS += -std=c++11
