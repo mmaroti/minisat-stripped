@@ -42,7 +42,7 @@ void printStats(Solver& solver)
 
 #   ifndef PRIi64
 #       ifdef __MINGW32__
-#           define PRIi64 "I64i" 
+#           define PRIi64 "I64i"
 #       else
 #           error PRIi64 not defined
 #       endif
@@ -61,7 +61,7 @@ void printStats(Solver& solver)
 
 
 static Solver* solver;
-#ifndef __MINGW32__
+#if !(defined(__MINGW32__) || defined(_MSC_VER))
 // Terminate by notifying the solver and back out gracefully. This is mainly to have a test-case
 // for this feature of the Solver as it may take longer than an immediate call to '_exit()'.
 static void SIGINT_interrupt(int) { solver->interrupt(); }
@@ -86,7 +86,7 @@ int main(int argc, char** argv)
     try {
         setUsageHelp("USAGE: %s [options] <input-file> <result-output-file>\n\n  where input is a file containing plain DIMACS.\n");
         // fprintf(stderr, "This is MiniSat 2.0 beta\n");
-        
+
 #if defined(__linux__) && !defined(__ANDROID__)
         fpu_control_t oldcw, newcw;
         _FPU_GETCW(oldcw); newcw = (oldcw & ~_FPU_EXTENDED) | _FPU_DOUBLE; _FPU_SETCW(newcw);
@@ -101,18 +101,18 @@ int main(int argc, char** argv)
         IntOption    mem_lim("MAIN", "mem-lim","Limit on memory usage in megabytes.\n", INT32_MAX, IntRange(0, INT32_MAX));
 
         parseOptions(argc, argv, true);
-        
+
         SimpSolver  S;
         double      initial_time = cpuTime();
 
         if (!pre) S.eliminate(true);
 
         S.verbosity = verb;
-        
+
         solver = &S;
         // Use signal handlers that forcibly quit until the solver will be able to respond to
         // interrupts:
-#       ifndef __MINGW32__
+#if !(defined(__MINGW32__) || defined(_MSC_VER))
         signal(SIGINT, SIGINT_exit);
         signal(SIGXCPU,SIGINT_exit);
 
@@ -136,19 +136,19 @@ int main(int argc, char** argv)
                 if (setrlimit(RLIMIT_AS, &rl) == -1)
                     fprintf(stderr, "WARNING! Could not set resource limit: Virtual memory.\n");
             } }
-#       endif
-        
+#endif
+
         if (argc == 1)
             fprintf(stderr, "Reading from standard input... Use '--help' for help.\n");
 
         FILE* in = (argc == 1) ? fdopen(0, "rb") : fopen(argv[1], "rb");
         if (in == NULL)
             fprintf(stderr, "ERROR! Could not open file: %s\n", argc == 1 ? "<stdin>" : argv[1]), exit(1);
-        
+
         if (S.verbosity > 0){
             fprintf(stderr, "============================[ Problem Statistics ]=============================\n");
             fprintf(stderr, "|                                                                             |\n"); }
-        
+
         parse_DIMACS(in, S);
         fclose(in);
         FILE* res = (argc >= 3) ? fopen(argv[2], "wb") : NULL;
@@ -156,17 +156,17 @@ int main(int argc, char** argv)
         if (S.verbosity > 0){
             fprintf(stderr, "|  Number of variables:  %12d                                         |\n", S.nVars());
             fprintf(stderr, "|  Number of clauses:    %12d                                         |\n", S.nClauses()); }
-        
+
         double parsed_time = cpuTime();
         if (S.verbosity > 0)
             fprintf(stderr, "|  Parse time:           %12.2f s                                       |\n", parsed_time - initial_time);
 
         // Change to signal-handlers that will only notify the solver and allow it to terminate
         // voluntarily:
-#       ifndef __MINGW32__
+#if !(defined(__MINGW32__) || defined(_MSC_VER))
         signal(SIGINT, SIGINT_interrupt);
         signal(SIGXCPU,SIGINT_interrupt);
-#       endif
+#endif
 
         S.eliminate(true);
         double simplified_time = cpuTime();
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 
         vec<Lit> dummy;
         lbool ret = S.solveLimited(dummy);
-        
+
         if (S.verbosity > 0){
             printStats(S);
             printf("\n"); }
