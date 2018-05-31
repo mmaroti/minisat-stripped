@@ -140,6 +140,3 @@ install(
       ${CMAKE_CURRENT_BINARY_DIR}/MiniSatConfigVersion.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
-
-export(EXPORT MiniSat-Targets FILE ${CMAKE_CURRENT_BINARY_DIR}/MiniSat-Targets.cmake NAMESPACE MiniSat::)
-export(PACKAGE MiniSat)
