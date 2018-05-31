@@ -92,7 +92,7 @@ set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/MiniSat)
 install(
     TARGETS
       libminisat
-    EXPORT MiniSat-Targets
+    EXPORT MiniSatTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -110,8 +110,8 @@ install(
 
 install(DIRECTORY minisat/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/minisat FILES_MATCHING PATTERN "*.h*")
 
-install(EXPORT MiniSat-Targets
-    FILE MiniSat-Targets.cmake
+install(EXPORT MiniSatTargets
+    FILE MiniSatTargets.cmake
     NAMESPACE MiniSat::
     DESTINATION ${INSTALL_CONFIGDIR}
 )
