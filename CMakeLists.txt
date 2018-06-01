@@ -1,7 +1,6 @@
 #########################
-# Important note: This CMake build file is intended for using MiniSat
-# as a static library. It does not build the DIMACS-parsing binaries,
-# and is only intended for consumption by other CMake projects.
+# Important note: Minisat does not properly annotate its API with
+# dllimport/dllexport, so the library build is forced to be static.
 #########################
 cmake_minimum_required(VERSION 3.5)
 project(MiniSat VERSION 2.2 LANGUAGES CXX)
