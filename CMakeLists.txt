@@ -76,13 +76,6 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
     target_compile_options( minisat-simp PRIVATE /W4 )
 endif()
 
-# Keep build optimized -- Only for GCC/Clang, MSVC does Debug/Release differently
-if ( CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU" )
-    target_compile_options( libminisat PRIVATE -O3 )
-    target_compile_options( minisat PRIVATE -O3 )
-    target_compile_options( minisat-simp PRIVATE -O3 )
-endif()
-
 
 ###############
 # Installation
