@@ -41,10 +41,6 @@ target_include_directories(libminisat
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-# ToDo: With some modernization of MiniSat, this is not strictly neccessary
-target_compile_definitions(libminisat PUBLIC __STDC_LIMIT_MACROS __STDC_FORMAT_MACROS)
-
-
 # Also build two MiniSat executables
 add_executable(minisat
     minisat/core/Main.cc
