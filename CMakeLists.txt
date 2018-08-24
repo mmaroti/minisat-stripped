@@ -5,8 +5,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(MiniSat VERSION 2.2 LANGUAGES CXX)
 
-include(GNUInstallDirs)
+option(MINISAT_BUILD_TESTING "Build and run MiniSat's tests" ON)
 
+include(GNUInstallDirs)
 
 add_library(libminisat STATIC
     # Impl files
@@ -88,6 +89,39 @@ if ( CMAKE_CXX_COMPILER_ID MATCHES "MSVC" )
     target_compile_options( minisat PRIVATE /W4 /wd4267 )
     target_compile_options( minisat-simp PRIVATE /W4 /wd4267 )
 endif()
+
+###############
+# Testing
+##
+include(CTest)
+
+if (MINISAT_BUILD_TESTING AND BUILD_TESTING)
+    # Read all easy instances from a file
+    file(READ "${PROJECT_SOURCE_DIR}/tests/inputs/easy.txt" MINISAT_INTEGRATION_TESTS)
+    string(REGEX REPLACE ";" "\\\\;" MINISAT_INTEGRATION_TESTS "${MINISAT_INTEGRATION_TESTS}")
+    string(REGEX REPLACE "\n" ";" MINISAT_INTEGRATION_TESTS "${MINISAT_INTEGRATION_TESTS}")
+
+    # Add 1 test for each easy instance
+    foreach(INTEGRATION_TEST ${MINISAT_INTEGRATION_TESTS})
+        add_test(NAME "integration:${INTEGRATION_TEST}"
+            COMMAND minisat -verb=0 "tests/inputs/${INTEGRATION_TEST}"
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        )
+        if ("${INTEGRATION_TEST}" MATCHES "^SAT")
+            # The output can contain multiple lines, so we cannot do a full-line match
+            # This means that we have to positive match SAT, but negative match UNSAT
+            # because SAT is a substring of UNSAT.
+            set_tests_properties("integration:${INTEGRATION_TEST}" PROPERTIES PASS_REGULAR_EXPRESSION "SAT\n"
+                                                                              FAIL_REGULAR_EXPRESSION "UNSAT\n")
+        else()
+            set_tests_properties("integration:${INTEGRATION_TEST}" PROPERTIES PASS_REGULAR_EXPRESSION "SAT\n")
+        endif()
+        set_tests_properties("integration:${INTEGRATION_TEST}" PROPERTIES
+            TIMEOUT 30
+        ) # 30s timeout
+    endforeach(INTEGRATION_TEST)
+
+endif() # TESTING
 
 
 ###############
