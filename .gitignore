@@ -1,8 +1,0 @@
-*.o
-*.od
-*.op
-*.or
-lib.a
-lib_*.a
-depend.mk
-minisat*
