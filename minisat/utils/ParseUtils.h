@@ -23,28 +23,34 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <memory>
 
 namespace Minisat {
 
 //-------------------------------------------------------------------------------------------------
 // A simple buffered character stream class:
 
-static const int buffer_size = 1048576;
-
+static const int buffer_size = 2097152;
 
 class StreamBuffer {
+    std::unique_ptr<unsigned char[]> buf;
     FILE*         in;
-    unsigned char buf[buffer_size];
     int           pos;
     int           size;
 
     void assureLookahead() {
         if (pos >= size) {
             pos  = 0;
-            size = fread(buf, sizeof(unsigned char), sizeof(buf), in); } }
+            size = fread(buf.get(), sizeof(unsigned char), buffer_size, in); } }
 
 public:
-    explicit StreamBuffer(FILE* i) : in(i), pos(0), size(0) { assureLookahead(); }
+    explicit StreamBuffer(FILE* i):
+        buf(new unsigned char[buffer_size]),
+        in(i),
+        pos(0),
+        size(0) {
+        assureLookahead();
+    }
 
     int  operator *  () const { return (pos >= size) ? EOF : buf[pos]; }
     void operator ++ ()       { pos++; assureLookahead(); }
@@ -102,7 +108,7 @@ static bool match(B& in, const char* str) {
 
     in += i;
 
-    return true; 
+    return true;
 }
 
 // String matching: consumes characters eagerly, but does not require random access iterator.
