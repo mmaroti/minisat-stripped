@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.5)
 project(MiniSat VERSION 2.2 LANGUAGES CXX)
 
 option(MINISAT_BUILD_TESTING "Build and run MiniSat's tests" ON)
+option(MINISAT_TEST_BENCHMARKS "Register benchmarks with CTest" OFF)
 
 include(GNUInstallDirs)
 
@@ -96,6 +97,7 @@ endif()
 include(CTest)
 
 if (MINISAT_BUILD_TESTING AND BUILD_TESTING)
+    message(STATUS "Registering integration tests")
     # Read all easy instances from a file
     file(READ "${PROJECT_SOURCE_DIR}/tests/inputs/easy.txt" MINISAT_INTEGRATION_TESTS)
     string(REGEX REPLACE ";" "\\\\;" MINISAT_INTEGRATION_TESTS "${MINISAT_INTEGRATION_TESTS}")
@@ -120,8 +122,37 @@ if (MINISAT_BUILD_TESTING AND BUILD_TESTING)
             TIMEOUT 30
         ) # 30s timeout
     endforeach(INTEGRATION_TEST)
-
 endif() # TESTING
+
+
+if (MINISAT_TEST_BENCHMARKS)
+    message(STATUS "Registering benchmarks")
+    include(CTest)
+
+    file(READ "${PROJECT_SOURCE_DIR}/tests/inputs/benchmarks.txt" MINISAT_BENCHMARKS)
+    string(REGEX REPLACE ";" "\\\\;" MINISAT_BENCHMARKS "${MINISAT_BENCHMARKS}")
+    string(REGEX REPLACE "\n" ";" MINISAT_BENCHMARKS "${MINISAT_BENCHMARKS}")
+
+    # Add 1 test for each easy instance
+    foreach(BENCHMARK ${MINISAT_BENCHMARKS})
+        add_test(NAME "benchmark:${BENCHMARK}"
+            COMMAND minisat -verb=0 "tests/inputs/${BENCHMARK}"
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        )
+        if ("${BENCHMARK}" MATCHES "^SAT")
+            # The output can contain multiple lines, so we cannot do a full-line match
+            # This means that we have to positive match SAT, but negative match UNSAT
+            # because SAT is a substring of UNSAT.
+            set_tests_properties("benchmark:${BENCHMARK}" PROPERTIES PASS_REGULAR_EXPRESSION "SAT\n"
+                                                                     FAIL_REGULAR_EXPRESSION "UNSAT\n")
+        else()
+            set_tests_properties("benchmark:${BENCHMARK}" PROPERTIES PASS_REGULAR_EXPRESSION "SAT\n")
+        endif()
+        set_tests_properties("benchmark:${BENCHMARK}" PROPERTIES
+            TIMEOUT 86400
+        ) # 1 day timeout
+    endforeach(BENCHMARK)
+endif()
 
 
 ###############

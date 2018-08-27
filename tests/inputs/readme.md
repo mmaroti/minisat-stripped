@@ -5,8 +5,14 @@ The basic set of inputs were taken from the [SATLIB benchmark page]
 split into two main folders, `SAT` and `UNSAT`, depending on whether the
 problem is satisfiable or unsatisfiable.
 
-The `easy.txt` file contains a list of inputs that finish in reasonable
-time and thus can be run per commit in a CI setting.
+The inputs were split into 2 groups, integration tests and benchmarks.
+The integration tests are such inputs that the current implementation
+can solve in a reasonable amount of time, and their list is contained
+within the `easy.txt` file. The benchmarks are DIMACS inputs that the
+current implementation needs at least a minute to solve, and their list
+is contained within the `benchmarks.txt` file.
+
+## Input sources
 
 ### DIMACS Benchmark Instances (original source: [DIMACS Benchmark set for SAT](ftp://dimacs.rutgers.edu/pub/challenge/satisfiability/benchmarks/cnf/))
 * AIM: Artificially generated Random-3-SAT - 48 instances satisfiable, 24 unsatisfiable
@@ -21,5 +27,3 @@ time and thus can be run per commit in a CI setting.
 * SSA: Circuit fault analysis: single-stuck-at fault - 4 instances satisfiable, 4 instances unsatisfiable
 * PHOLE: Pigeon hole problem - 5 instances, all unsatisfiable
 * PRET: Encoded 2-colouring forced to be unsatisfiable - 8 instances, all unsatisfiable
-
-
