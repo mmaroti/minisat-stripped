@@ -23,6 +23,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <assert.h>
 #include <new>
+#include <type_traits>
+#include <algorithm>
+#include <functional>
 
 #include "minisat/mtl/IntTypes.h"
 #include "minisat/mtl/XAlloc.h"
@@ -36,93 +39,226 @@ namespace Minisat {
 
 template<class T>
 class vec {
-    T*  data;
-    int sz;
-    int cap;
+    using size_type = int;
+    T* m_data = nullptr;
+    T* m_current = nullptr;
+    T* m_end = nullptr;
 
-    // Don't allow copying (error prone):
-    vec<T>&  operator = (vec<T> const&) = delete;
-             vec        (vec<T> const&) = delete;
-
-    // Helpers for calculating next capacity:
-    static inline int  imax   (int x, int y) { int mask = (y-x) >> (sizeof(int)*8-1); return (x&mask) + (y&(~mask)); }
-    //static inline void nextCap(int& cap){ cap += ((cap >> 1) + 2) & ~1; }
-    static inline void nextCap(int& cap){ cap += ((cap >> 1) + 2) & ~1; }
+    size_type adjust_next_size(size_type requested) {
+        const auto old_cap = capacity();
+        if (std::numeric_limits<size_type>::max() - old_cap < old_cap / 2) {
+            // Geometric growth would overflow
+            return requested;
+        }
+        // At least 1.5x growth factor
+        const auto geometric = old_cap + old_cap / 2;
+        return std::max(geometric, requested);
+    }
 
 public:
+    // other meta things
+    using iterator = T * ;
+    using const_iterator = T const*;
+    using value_type = T;
+
     // Constructors:
-    vec()                       : data(NULL) , sz(0)   , cap(0)    { }
-    explicit vec(int size)      : data(NULL) , sz(0)   , cap(0)    { growTo(size); }
-    vec(int size, const T& pad) : data(NULL) , sz(0)   , cap(0)    { growTo(size, pad); }
-   ~vec()                                                          { clear(true); }
+    vec() = default;
+    explicit vec(int size)      { growTo(size); }
+    vec(int size, const T& pad) { growTo(size, pad); }
+   ~vec()                       { clear(true); }
+
+   // Don't allow copying (error prone):
+   vec<T>&  operator = (vec<T> const&) = delete;
+   vec(vec<T> const&) = delete;
 
     // Pointer to first element:
-    operator T*       (void)           { return data; }
+    operator T*() { return m_data; }
 
     // Size operations:
-    int      size     (void) const     { return sz; }
-    void     shrink   (int nelems)     { assert(nelems <= sz); for (int i = 0; i < nelems; i++) sz--, data[sz].~T(); }
-    void     shrink_  (int nelems)     { assert(nelems <= sz); sz -= nelems; }
-    int      capacity (void) const     { return cap; }
+    int size() const { return static_cast<int>(m_current - m_data); }
+    bool empty() const { return m_current == m_data; }
+    void     shrink   (int nelems) {
+        assert(nelems <= size() && "Attempted to shrink vector by more than it has elements");
+        shrink_(nelems, std::is_trivially_destructible<T>{});
+    }
+    // Truncate the vector from position till the `end()`
+    void truncate(const_iterator from) {
+        // By using `std::less_equal` instead of `<=`, we have guaranteed
+        // the definedness of the comparison even if the iterators (pointers)
+        // are from a different allocation.
+        assert(std::less_equal<const_iterator>{}(m_data, from) && "Outside of vector");
+        assert(std::less_equal<const_iterator>{}(from, m_current) && "Outside of valid elements");
+        erase_(from, std::is_trivially_destructible<T>{});
+        m_current = const_cast<T*>(from);
+    }
+    int      capacity () const     { return static_cast<int>(m_end - m_data); }
     void     capacity (int min_cap);
     void     growTo   (int size);
     void     growTo   (int size, const T& pad);
     void     clear    (bool dealloc = false);
 
     // Stack interface:
-    void     push  (void)              { if (sz == cap) capacity(sz+1); new (&data[sz]) T(); sz++; }
-    void     push  (const T& elem)     { if (sz == cap) capacity(sz+1); data[sz++] = elem; }
-    void     push_ (const T& elem)     { assert(sz < cap); data[sz++] = elem; }
-    void     pop   (void)              { assert(sz > 0); sz--, data[sz].~T(); }
+    void push() {
+        if (m_current == m_end) {
+            capacity(size() + 1);
+        }
+        new (m_current) T();
+        ++m_current;
+    }
+    void push (const T& elem) {
+        if (m_current == m_end) {
+            capacity(size() + 1);
+        }
+        *m_current = elem;
+        ++m_current;
+    }
+    // Does not realloc if there is not enough space for the element!
+    void     push_ (const T& elem)     { assert(m_current != m_end); *(m_current++) = elem; }
+    void     pop() { assert(m_data != m_current && "Attempted vec::pop on an empty vec"); pop_(std::is_trivially_destructible<T>{}); }
     // NOTE: it seems possible that overflow can happen in the 'sz+1' expression of 'push()', but
     // in fact it can not since it requires that 'cap' is equal to INT_MAX. This in turn can not
     // happen given the way capacities are calculated (below). Essentially, all capacities are
     // even, but INT_MAX is odd.
 
-    const T& last  (void) const        { return data[sz-1]; }
-    T&       last  (void)              { return data[sz-1]; }
+    const T& last  () const { assert(m_data != m_current && "Called vec::last on an empty vector."); return *(m_current - 1); }
+    T&       last  ()       { assert(m_data != m_current && "Called vec::last on an empty vector."); return *(m_current - 1); }
 
     // Vector interface:
-    const T& operator [] (int index) const { return data[index]; }
-    T&       operator [] (int index)       { return data[index]; }
+    const T& operator [] (int index) const { return m_data[index]; }
+    T&       operator [] (int index)       { return m_data[index]; }
 
-    // Duplicatation (preferred instead):
-    void copyTo(vec<T>& copy) const { copy.clear(); copy.growTo(sz); for (int i = 0; i < sz; i++) copy[i] = data[i]; }
-    void moveTo(vec<T>& dest) { dest.clear(true); dest.data = data; dest.sz = sz; dest.cap = cap; data = NULL; sz = 0; cap = 0; }
+    // Duplication (preferred instead):
+    void copyTo(vec<T>& copy) const {
+        copy.clear();
+        copy.capacity(size());
+        std::copy(begin(), end(), copy.begin());
+        copy.m_current = copy.m_data + size();
+    }
+    void moveTo(vec<T>& dest) {
+        swap(dest);
+    }
+
+    // Iterator support
+    iterator begin() { return m_data; }
+    iterator end() { return m_current; }
+    const_iterator begin() const { return m_data; }
+    const_iterator end() const { return m_current; }
+    const_iterator cbegin() const { return m_data; }
+    const_iterator cend() const { return m_current; }
+
+    void swap(vec& rhs) {
+        std::swap(m_data, rhs.m_data);
+        std::swap(m_current, rhs.m_current);
+        std::swap(m_end, rhs.m_end);
+    }
+
+private:
+    //////
+    // Specializations of implementation details based on T's properties
+
+    // Is trivially destructible
+    void erase_(const_iterator, std::true_type) {}
+    // Is not trivially destructible
+    void erase_(const_iterator from, std::false_type) {
+        while (from != m_end) {
+            from->~T();
+            ++from;
+        }
+    }
+
+    // Is trivially destructible
+    void shrink_(int nelems, std::true_type) {
+        m_current -= nelems;
+    }
+
+    // Is not trivially destructible
+    void shrink_(int nelems, std::false_type) {
+        while (nelems--) {
+            --m_current;
+            m_current->~T();
+        }
+    }
+
+    // Is trivially destructible
+    void pop_(std::true_type) { --m_current; }
+    // Is not trivially destructible
+    void pop_(std::false_type) { --m_current; m_current->~T(); }
+
+    // Is trivially destructible
+    void clear_(std::true_type) {}
+    // Is trivially destructible
+    void clear_(std::false_type) {
+        if (m_data != NULL) {
+            auto cptr = m_data;
+            while (cptr != m_current) {
+                cptr->~T();
+                ++cptr;
+            }
+        }
+    }
+
 };
 
 
 template<class T>
 void vec<T>::capacity(int min_cap) {
-    if (cap >= min_cap) return;
-    int add = imax((min_cap - cap + 1) & ~1, ((cap >> 1) + 2) & ~1);   // NOTE: grow by approximately 3/2
-    if (add > INT_MAX - cap || (((data = (T*)::realloc(data, (cap += add) * sizeof(T))) == NULL) && errno == ENOMEM))
-        throw OutOfMemoryException();
+    if (capacity() >= min_cap) return;
+
+    const auto new_cap = adjust_next_size(min_cap);
+
+    auto new_data = static_cast<T*>(realloc(m_data, new_cap * sizeof(T)));
+    if (new_data == nullptr) {
+        throw OutOfMemoryException("vec::capacity could not allocate enough memory");
+    }
+    const auto current_size = size();
+    m_data = new_data;
+    m_current = m_data + current_size;
+    m_end = m_data + new_cap;
  }
 
 
 template<class T>
-void vec<T>::growTo(int size, const T& pad) {
-    if (sz >= size) return;
-    capacity(size);
-    for (int i = sz; i < size; i++) data[i] = pad;
-    sz = size; }
+void vec<T>::growTo(int new_size, const T& pad) {
+    // If we are already larger, don't do anything
+    if (size() >= new_size) return;
+
+    capacity(new_size);
+    const auto target = m_data + new_size;
+    while (m_current != target) {
+        *(m_current++) = pad;
+    }
+}
 
 
 template<class T>
-void vec<T>::growTo(int size) {
-    if (sz >= size) return;
-    capacity(size);
-    for (int i = sz; i < size; i++) new (&data[i]) T();
-    sz = size; }
+void vec<T>::growTo(int new_size) {
+    // If we are already larger, don't do anything
+    if (size() >= new_size) return;
+
+    capacity(new_size);
+    const auto target = m_data + new_size;
+    while (m_current != target) {
+        new (m_current++) T{};
+    }
+}
 
 
 template<class T>
 void vec<T>::clear(bool dealloc) {
-    if (data != NULL){
-        for (int i = 0; i < sz; i++) data[i].~T();
-        sz = 0;
-        if (dealloc) free(data), data = NULL, cap = 0; } }
+    clear_(std::is_trivially_destructible<T>{});
+    m_current = m_data;
+    if (dealloc) {
+        free(m_data);
+        m_data = nullptr;
+        m_current = nullptr;
+        m_end = nullptr;
+    }
+}
+
+template <class T>
+void swap(vec<T>& lhs, vec<T>& rhs) {
+    lhs.swap(rhs);
+}
 
 //=================================================================================================
 }
