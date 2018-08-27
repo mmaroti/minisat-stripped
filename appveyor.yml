@@ -31,3 +31,8 @@ build:
   project: Build\MiniSat.sln            # path to Visual Studio solution or project
   parallel: true                        # enable MSBuild parallel builds
   verbosity: normal                     # MSBuild verbosity level {quiet|minimal|normal|detailed}
+
+test_script:
+  - cd Build
+  - set CTEST_OUTPUT_ON_FAILURE=1
+  - ctest -j 2 -C %CONFIGURATION%
