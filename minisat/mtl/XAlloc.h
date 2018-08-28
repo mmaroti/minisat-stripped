@@ -23,13 +23,18 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <errno.h>
 #include <stdlib.h>
+#include <stdexcept>
 
 namespace Minisat {
 
 //=================================================================================================
 // Simple layer on top of malloc/realloc to catch out-of-memory situtaions and provide some typing:
 
-class OutOfMemoryException{};
+class OutOfMemoryException : public std::runtime_error {
+public:
+    OutOfMemoryException(): runtime_error("OutOfMemoryException") {}
+    using std::runtime_error::runtime_error;
+};
 static inline void* xrealloc(void *ptr, size_t size)
 {
     void* mem = realloc(ptr, size);
