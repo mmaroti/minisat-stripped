@@ -45,7 +45,7 @@ class Heap {
     {
         int x  = heap[i];
         int p  = parent(i);
-        
+
         while (i != 0 && lt(x, heap[p])){
             heap[i]          = heap[p];
             indices[heap[p]] = i;
@@ -76,7 +76,7 @@ class Heap {
     Heap(const Comp& c) : lt(c) { }
 
     int  size      ()          const { return heap.size(); }
-    bool empty     ()          const { return heap.size() == 0; }
+    bool empty     ()          const { return heap.empty(); }
     bool inHeap    (int n)     const { return n < indices.size() && indices[n] >= 0; }
     int  operator[](int index) const { assert(index < heap.size()); return heap[index]; }
 
@@ -103,7 +103,7 @@ class Heap {
 
         indices[n] = heap.size();
         heap.push(n);
-        percolateUp(indices[n]); 
+        percolateUp(indices[n]);
     }
 
 
@@ -115,29 +115,31 @@ class Heap {
         indices[x]       = -1;
         heap.pop();
         if (heap.size() > 1) percolateDown(0);
-        return x; 
+        return x;
     }
 
 
     // Rebuild the heap from scratch, using the elements in 'ns':
     void build(vec<int>& ns) {
-        for (int i = 0; i < heap.size(); i++)
-            indices[heap[i]] = -1;
         heap.clear();
+        for (auto& idx : indices) {
+            idx = -1;
+        }
 
         for (int i = 0; i < ns.size(); i++){
             indices[ns[i]] = i;
-            heap.push(ns[i]); }
+            heap.push(ns[i]);
+        }
 
         for (int i = heap.size() / 2 - 1; i >= 0; i--)
             percolateDown(i);
     }
 
-    void clear(bool dealloc = false) 
-    { 
+    void clear(bool dealloc = false)
+    {
         for (int i = 0; i < heap.size(); i++)
             indices[heap[i]] = -1;
-        heap.clear(dealloc); 
+        heap.clear(dealloc);
     }
 };
 

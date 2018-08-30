@@ -22,7 +22,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_SolverTypes_h
 #define Minisat_SolverTypes_h
 
-#include <assert.h>
+#include <cassert>
+#include <algorithm>
 
 #include "minisat/mtl/IntTypes.h"
 #include "minisat/mtl/Alg.h"
@@ -62,9 +63,9 @@ inline  bool sign      (Lit p)              { return p.x & 1; }
 inline  int  var       (Lit p)              { return p.x >> 1; }
 
 // Mapping Literals to and from compact integers suitable for array indexing:
-inline  int  toInt     (Var v)              { return v; } 
-inline  int  toInt     (Lit p)              { return p.x; } 
-inline  Lit  toLit     (int i)              { Lit p; p.x = i; return p; } 
+inline  int  toInt     (Var v)              { return v; }
+inline  int  toInt     (Lit p)              { return p.x; }
+inline  Lit  toLit     (int i)              { Lit p; p.x = i; return p; }
 
 //const Lit lit_Undef = mkLit(var_Undef, false);  // }- Useful special constants.
 //const Lit lit_Error = mkLit(var_Undef, true );  // }
@@ -77,7 +78,7 @@ const Lit lit_Error = { -1 };  // }
 // Lifted booleans:
 //
 // NOTE: this implementation is optimized for the case when comparisons between values are mostly
-//       between one variable and one constant. Some care had to be taken to make sure that gcc 
+//       between one variable and one constant. Some care had to be taken to make sure that gcc
 //       does enough constant propagation to produce sensible code, and this appears to be somewhat
 //       fragile unfortunately.
 
@@ -101,7 +102,7 @@ public:
     bool  isTrue()  const { return *this == l_True;  }
     bool  isFalse() const { return *this == l_False; }
 
-    lbool operator && (lbool b) const { 
+    lbool operator && (lbool b) const {
         uint8_t sel = (this->value << 1) | (b.value << 3);
         uint8_t v   = (0xF7F755F4 >> sel) & 3;
         return lbool(v); }
@@ -130,7 +131,7 @@ class Clause {
         unsigned has_extra : 1;
         unsigned reloced   : 1;
         unsigned size      : 27; }                            header;
-    union { Lit lit; float act; uint32_t abs; CRef rel; } data[0];
+    union data_union { Lit lit; float act; uint32_t abs; CRef rel; } data[0];
 
     friend class ClauseAllocator;
 
@@ -143,13 +144,13 @@ class Clause {
         header.reloced   = 0;
         header.size      = ps.size();
 
-        for (int i = 0; i < ps.size(); i++) 
+        for (int i = 0; i < ps.size(); i++)
             data[i].lit = ps[i];
 
         if (header.has_extra){
             if (header.learnt)
-                data[header.size].act = 0; 
-            else 
+                data[header.size].act = 0;
+            else
                 calcAbstraction(); }
     }
 
@@ -237,13 +238,13 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     void reloc(CRef& cr, ClauseAllocator& to)
     {
         Clause& c = operator[](cr);
-        
+
         if (c.reloced()) { cr = c.relocation(); return; }
-        
+
         cr = to.alloc(c, c.learnt());
         c.relocate(cr);
-        
-        // Copy extra data-fields: 
+
+        // Copy extra data-fields:
         // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
         to[cr].mark(c.mark());
         if (to[cr].learnt())         to[cr].activity() = c.activity();
@@ -265,7 +266,7 @@ class OccLists
 
  public:
     OccLists(const Deleted& d) : deleted(d) {}
-    
+
     void  init      (const Idx& idx){ occs.growTo(toInt(idx)+1); dirty.growTo(toInt(idx)+1, 0); }
     // Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
     Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
@@ -291,10 +292,11 @@ class OccLists
 template<class Idx, class Vec, class Deleted>
 void OccLists<Idx,Vec,Deleted>::cleanAll()
 {
-    for (int i = 0; i < dirties.size(); i++)
-        // Dirties may contain duplicates so check here if a variable is already cleaned:
-        if (dirty[toInt(dirties[i])])
-            clean(dirties[i]);
+    for (auto const& d : dirties) {
+        if (dirty[toInt(d)]) {
+            clean(d);
+        }
+    }
     dirties.clear();
 }
 
@@ -303,11 +305,11 @@ template<class Idx, class Vec, class Deleted>
 void OccLists<Idx,Vec,Deleted>::clean(const Idx& idx)
 {
     Vec& vec = occs[toInt(idx)];
-    int  i, j;
-    for (i = j = 0; i < vec.size(); i++)
-        if (!deleted(vec[i]))
-            vec[j++] = vec[i];
-    vec.shrink(i - j);
+    auto j = std::remove_if(vec.begin(), vec.end(), [&] (typename Vec::value_type const& elem) {
+            return deleted(elem);
+        }
+    );
+    vec.truncate(j);
     dirty[toInt(idx)] = 0;
 }
 
@@ -324,13 +326,13 @@ class CMap
 
     typedef Map<CRef, T, CRefHash> HashTable;
     HashTable map;
-        
+
  public:
     // Size-operations:
     void     clear       ()                           { map.clear(); }
     int      size        ()                const      { return map.elems(); }
 
-    
+
     // Insert/Remove/Test mapping:
     void     insert      (CRef cr, const T& t){ map.insert(cr, t); }
     void     growTo      (CRef cr, const T& t){ map.insert(cr, t); } // NOTE: for compatibility
@@ -357,11 +359,11 @@ class CMap
 /*_________________________________________________________________________________________________
 |
 |  subsumes : (other : const Clause&)  ->  Lit
-|  
+|
 |  Description:
 |       Checks if clause subsumes 'other', and at the same time, if it can be used to simplify 'other'
 |       by subsumption resolution.
-|  
+|
 |    Result:
 |       lit_Error  - No subsumption or simplification
 |       lit_Undef  - Clause subsumes 'other'
@@ -398,9 +400,13 @@ inline Lit Clause::subsumes(const Clause& other) const
     return ret;
 }
 
-inline void Clause::strengthen(Lit p)
-{
-    remove(*this, p);
+inline void Clause::strengthen(Lit p) {
+    auto ptr = std::remove_if(data, data + header.size, [p] (data_union elem) {return elem.lit == p; });
+    assert(ptr != data + header.size);
+    assert(ptr == data + header.size - 1);
+    (void)ptr;
+    shrink(1);
+
     calcAbstraction();
 }
 
