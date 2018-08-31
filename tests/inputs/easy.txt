@@ -207,7 +207,6 @@ UNSAT/jnh/jnh9.cnf
 UNSAT/pigeon-hole/hole6.cnf
 UNSAT/pigeon-hole/hole7.cnf
 UNSAT/pigeon-hole/hole8.cnf
-UNSAT/pigeon-hole/hole9.cnf
 UNSAT/pret/pret150_25.cnf
 UNSAT/pret/pret150_40.cnf
 UNSAT/pret/pret150_60.cnf

@@ -15,4 +15,5 @@ SAT/parity/par32-4-c.cnf
 SAT/parity/par32-4.cnf
 SAT/parity/par32-5-c.cnf
 SAT/parity/par32-5.cnf
+UNSAT/pigeon-hole/hole9.cnf
 UNSAT/pigeon-hole/hole10.cnf
