@@ -72,7 +72,7 @@ class Map {
     bool    checkCap(int new_size) const { return new_size > cap; }
 
     int32_t index  (const K& k) const { return hash(k) % cap; }
-    void   _insert (const K& k, const D& d) { 
+    void   _insert (const K& k, const D& d) {
         vec<Pair>& ps = table[index(k)];
         ps.push(); ps.last().key = k; ps.last().data = d; }
 
@@ -96,7 +96,7 @@ class Map {
         // printf(" --- rehashing, old-cap=%d, new-cap=%d\n", cap, newsize);
     }
 
-    
+
  public:
 
     Map () : table(NULL), cap(0), size(0) {}
@@ -108,10 +108,11 @@ class Map {
     {
         assert(size != 0);
         const D*         res = NULL;
-        const vec<Pair>& ps  = table[index(k)];
-        for (int i = 0; i < ps.size(); i++)
-            if (equals(ps[i].key, k))
-                res = &ps[i].data;
+        for (auto const& elem : table[index(k)]) {
+            if (equals(elem.key, k)) {
+                res = &elem.data;
+            }
+        }
         assert(res != NULL);
         return *res;
     }
@@ -122,9 +123,11 @@ class Map {
         assert(size != 0);
         D*         res = NULL;
         vec<Pair>& ps  = table[index(k)];
-        for (int i = 0; i < ps.size(); i++)
-            if (equals(ps[i].key, k))
-                res = &ps[i].data;
+        for (auto& elem : table[index(k)]) {
+            if (equals(elem.key, k)) {
+                res = &elem.data;
+            }
+        }
         assert(res != NULL);
         return *res;
     }
@@ -133,20 +136,22 @@ class Map {
     void insert (const K& k, const D& d) { if (checkCap(size+1)) rehash(); _insert(k, d); size++; }
     bool peek   (const K& k, D& d) const {
         if (size == 0) return false;
-        const vec<Pair>& ps = table[index(k)];
-        for (int i = 0; i < ps.size(); i++)
-            if (equals(ps[i].key, k)){
-                d = ps[i].data;
-                return true; } 
+        for (auto const& elem : table[index(k)]) {
+            if (equals(elem.key, k)) {
+                d = elem.data;
+                return true;
+            }
+        }
         return false;
     }
 
     bool has   (const K& k) const {
         if (size == 0) return false;
-        const vec<Pair>& ps = table[index(k)];
-        for (int i = 0; i < ps.size(); i++)
-            if (equals(ps[i].key, k))
+        for (auto const& elem : table[index(k)]) {
+            if (equals(elem.key, k)) {
                 return true;
+            }
+        }
         return false;
     }
 

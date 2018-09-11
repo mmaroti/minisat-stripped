@@ -13,6 +13,7 @@ include(GNUInstallDirs)
 add_library(libminisat STATIC
     # Impl files
     minisat/core/Solver.cc
+    minisat/core/SolverTypes.cc
     minisat/utils/Options.cc
     minisat/utils/System.cc
     minisat/simp/SimpSolver.cc
