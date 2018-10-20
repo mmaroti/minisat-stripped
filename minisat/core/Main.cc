@@ -36,9 +36,6 @@ using namespace Minisat;
 void printStats(Solver& solver)
 {
     double cpu_time = cpuTime();
-#   ifndef __MINGW32__
-    double mem_used = memUsedPeak();
-#   endif
 
 #   ifndef PRIi64
 #       ifdef __MINGW32__
@@ -53,9 +50,6 @@ void printStats(Solver& solver)
     fprintf(stderr, "decisions             : %-12" PRIu64 "   (%4.2f %% random) (%.0f /sec)\n", solver.decisions, (float)solver.rnd_decisions*100 / (float)solver.decisions, solver.decisions   /cpu_time);
     fprintf(stderr, "propagations          : %-12" PRIu64 "   (%.0f /sec)\n", solver.propagations, solver.propagations/cpu_time);
     fprintf(stderr, "conflict literals     : %-12" PRIu64 "   (%4.2f %% deleted)\n", solver.tot_literals, (solver.max_literals - solver.tot_literals)*100 / (double)solver.max_literals);
-#   ifndef __MINGW32__
-    if (mem_used != 0) fprintf(stderr, "Memory used           : %.2f MB\n", mem_used);
-#   endif
     fprintf(stderr, "CPU time              : %g s\n", cpu_time);
 }
 

@@ -15,7 +15,6 @@ add_library(libminisat STATIC
     minisat/core/Solver.cc
     minisat/core/SolverTypes.cc
     minisat/utils/Options.cc
-    minisat/utils/System.cc
     # Header files for IDEs
     minisat/core/Dimacs.h
     minisat/core/Solver.h
@@ -31,7 +30,6 @@ add_library(libminisat STATIC
     minisat/mtl/XAlloc.h
     minisat/utils/Options.h
     minisat/utils/ParseUtils.h
-    minisat/utils/System.h
 )
 
 # Keep the library named as either libminisat.a or minisat.lib
