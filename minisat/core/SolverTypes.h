@@ -150,19 +150,10 @@ class Clause {
         if (header.has_extra){
             if (header.learnt)
                 data[header.size].act = 0;
-            else
-                calcAbstraction(); }
+        }
     }
 
 public:
-    void calcAbstraction() {
-        assert(header.has_extra);
-        uint32_t abstraction = 0;
-        for (int i = 0; i < size(); i++)
-            abstraction |= 1 << (var(data[i].lit) & 31);
-        data[header.size].abs = abstraction;  }
-
-
     int          size        ()      const   { return header.size; }
     void         shrink      (int i)         { assert(i <= size()); if (header.has_extra) data[header.size-i] = data[header.size]; header.size -= i; }
     void         pop         ()              { shrink(1); }
@@ -183,7 +174,6 @@ public:
     operator const Lit* (void) const         { return (Lit*)data; }
 
     float&       activity    ()              { assert(header.has_extra); return data[header.size].act; }
-    uint32_t     abstraction () const        { assert(header.has_extra); return data[header.size].abs; }
 };
 
 
@@ -237,8 +227,6 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         to.lea(cr)->mark(c->mark());
         if (to.lea(cr)->learnt())         
             to.lea(cr)->activity() = c->activity();
-        else if (to.lea(cr)->has_extra()) 
-            to.lea(cr)->calcAbstraction();
     }
 };
 
