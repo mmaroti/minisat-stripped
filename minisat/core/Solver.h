@@ -146,7 +146,7 @@ protected:
     {
         const ClauseAllocator& ca;
         WatcherDeleted(const ClauseAllocator& _ca) : ca(_ca) {}
-        bool operator()(const Watcher& w) const { return ca[w.cref].mark() == 1; }
+        bool operator()(const Watcher& w) const { return ca.lea(w.cref)->mark() == 1; }
     };
 
     struct VarOrderLt {
@@ -287,7 +287,7 @@ inline void Solver::claBumpActivity (Clause& c) {
     if ( (c.activity() = float(c.activity() + cla_inc)) > 1e20 ) {
         // Rescale:
         for (auto const& learnt : learnts) {
-            ca[learnt].activity() = float(ca[learnt].activity() * 1e-20);
+            ca.lea(learnt)->activity() = float(ca.lea(learnt)->activity() * 1e-20);
         }
         cla_inc *= 1e-20;
     }
