@@ -25,7 +25,6 @@ add_library(libminisat STATIC
     minisat/mtl/Queue.h
     minisat/mtl/Sort.h
     minisat/mtl/Vec.h
-    minisat/mtl/XAlloc.h
 )
 
 # Keep the library named as either libminisat.a or minisat.lib

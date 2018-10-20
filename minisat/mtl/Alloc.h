@@ -21,10 +21,20 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Alloc_h
 #define Minisat_Alloc_h
 
-#include "minisat/mtl/XAlloc.h"
+#include <new>
+
 #include "minisat/mtl/Vec.h"
 
 namespace Minisat {
+
+static inline void* xrealloc(void *ptr, size_t size)
+{
+    void* mem = realloc(ptr, size);
+    if (mem == NULL && errno == ENOMEM){
+        throw std::bad_alloc();
+    }else
+        return mem;
+}
 
 //=================================================================================================
 // Simple Region-based memory allocator:
@@ -97,7 +107,7 @@ void RegionAllocator<T>::capacity(uint32_t min_cap)
         cap += delta;
 
         if (cap <= prev_cap)
-            throw OutOfMemoryException();
+            throw std::bad_alloc();
     }
     // printf(" .. (%p) cap = %u\n", this, cap);
 
@@ -119,7 +129,7 @@ RegionAllocator<T>::alloc(int size)
     
     // Handle overflow:
     if (sz < prev_sz)
-        throw OutOfMemoryException();
+        throw std::bad_alloc();
 
     return prev_sz;
 }
