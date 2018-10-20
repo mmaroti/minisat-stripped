@@ -45,7 +45,6 @@ class RegionAllocator
     T*        memory;
     uint32_t  sz;
     uint32_t  cap;
-    uint32_t  wasted_;
 
     void capacity(uint32_t min_cap);
 
@@ -53,37 +52,19 @@ class RegionAllocator
     // TODO: make this a class for better type-checking?
     typedef uint32_t Ref;
     enum { Ref_Undef = UINT32_MAX };
-    enum { Unit_Size = sizeof(uint32_t) };
 
-    explicit RegionAllocator(uint32_t start_cap = 1024*1024) : memory(NULL), sz(0), cap(0), wasted_(0){ capacity(start_cap); }
+    explicit RegionAllocator(uint32_t start_cap = 1024*1024) : memory(NULL), sz(0), cap(0) { capacity(start_cap); }
     ~RegionAllocator()
     {
         if (memory != NULL)
             ::free(memory);
     }
 
-
-    uint32_t size      () const      { return sz; }
-    uint32_t wasted    () const      { return wasted_; }
-
     Ref      alloc     (int size); 
-    void     free      (int size)    { wasted_ += size; }
+    void     free      (int size) { }
 
     T*       lea       (Ref r)       { assert(r >= 0 && r < sz); return &memory[r]; }
     const T* lea       (Ref r) const { assert(r >= 0 && r < sz); return &memory[r]; }
-
-    void     moveTo(RegionAllocator& to) {
-        if (to.memory != NULL) ::free(to.memory);
-        to.memory = memory;
-        to.sz = sz;
-        to.cap = cap;
-        to.wasted_ = wasted_;
-
-        memory = NULL;
-        sz = cap = wasted_ = 0;
-    }
-
-
 };
 
 template<class T>

@@ -129,9 +129,8 @@ class Clause {
         unsigned mark      : 2;
         unsigned learnt    : 1;
         unsigned has_extra : 1;
-        unsigned reloced   : 1;
         unsigned size      : 27; }                            header;
-    union data_union { Lit lit; float act; uint32_t abs; CRef rel; } data[0];
+    union data_union { Lit lit; float act; uint32_t abs; } data[0];
 
     friend class ClauseAllocator;
 
@@ -141,7 +140,6 @@ class Clause {
         header.mark      = 0;
         header.learnt    = learnt;
         header.has_extra = use_extra;
-        header.reloced   = 0;
         header.size      = ps.size();
 
         for (int i = 0; i < ps.size(); i++)
@@ -163,10 +161,6 @@ public:
     void         mark        (uint32_t m)    { header.mark = m; }
     const Lit&   last        ()      const   { return data[header.size-1].lit; }
 
-    bool         reloced     ()      const   { return header.reloced; }
-    CRef         relocation  ()      const   { return data[0].rel; }
-    void         relocate    (CRef c)        { header.reloced = 1; data[0].rel = c; }
-
     // NOTE: somewhat unsafe to change the clause in-place! Must manually call 'calcAbstraction' afterwards for
     //       subsumption operations to behave correctly.
     Lit&         operator [] (int i)         { return data[i].lit; }
@@ -187,9 +181,6 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     static int clauseWord32Size(int size, bool has_extra){
         return (sizeof(Clause) + (sizeof(Lit) * (size + (int)has_extra))) / sizeof(uint32_t); }
  public:
-    void moveTo(ClauseAllocator& to){
-        RegionAllocator<uint32_t>::moveTo(to); }
-
     template<class Lits>
     CRef alloc(const Lits& ps, bool learnt = false)
     {
@@ -211,22 +202,6 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     {
         Clause* c = lea(cid);
         RegionAllocator<uint32_t>::free(clauseWord32Size(c->size(), c->has_extra()));
-    }
-
-    void reloc(CRef& cr, ClauseAllocator& to)
-    {
-        Clause* c = lea(cr);
-
-        if (c->reloced()) { cr = c->relocation(); return; }
-
-        cr = to.alloc(*c, c->learnt());
-        c->relocate(cr);
-
-        // Copy extra data-fields:
-        // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
-        to.lea(cr)->mark(c->mark());
-        if (to.lea(cr)->learnt())         
-            to.lea(cr)->activity() = c->activity();
     }
 };
 
