@@ -27,8 +27,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <algorithm>
 #include <functional>
 
-#include "minisat/mtl/IntTypes.h"
-
 namespace Minisat {
 
 //=================================================================================================
