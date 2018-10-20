@@ -88,12 +88,6 @@ public:
     void    interrupt();          // Trigger a (potentially asynchronous) interruption of the solver.
     void    clearInterrupt();     // Clear interrupt indicator flag.
 
-    // Memory managment:
-    //
-    virtual void garbageCollect();
-    void    checkGarbage(double gf);
-    void    checkGarbage();
-
     // Extra results: (read-only member variable)
     //
     vec<lbool> model;             // If problem is satisfiable, this vector contains the model (if any).
@@ -233,8 +227,6 @@ protected:
     bool     locked           (const Clause& c) const; // Returns TRUE if a clause is a reason for some implication in the current state.
     bool     satisfied        (const Clause& c) const; // Returns TRUE if a clause is satisfied in the current state.
 
-    void     relocAll         (ClauseAllocator& to);
-
     // Misc:
     //
     int      decisionLevel    ()      const; // Gives the current decisionlevel.
@@ -292,11 +284,6 @@ inline void Solver::claBumpActivity (Clause& c) {
         cla_inc *= 1e-20;
     }
 }
-
-inline void Solver::checkGarbage(void){ return checkGarbage(garbage_frac); }
-inline void Solver::checkGarbage(double gf){
-    if (ca.wasted() > ca.size() * gf)
-        garbageCollect(); }
 
 // NOTE: enqueue does not set the ok flag! (only public methods do)
 inline bool     Solver::enqueue         (Lit p, CRef from)      { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }

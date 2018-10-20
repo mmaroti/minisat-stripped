@@ -538,7 +538,6 @@ void Solver::reduceDB()
             learnts[j++] = learnts[i];
     }
     learnts.shrink(i - j);
-    checkGarbage();
 }
 
 
@@ -593,7 +592,6 @@ bool Solver::simplify()
     removeSatisfied(learnts);
     if (remove_satisfied)        // Can be turned off.
         removeSatisfied(clauses);
-    checkGarbage();
     rebuildOrderHeap();
 
     simpDB_assigns = nAssigns();
@@ -795,58 +793,4 @@ lbool Solver::solve_()
 
     cancelUntil(0);
     return status;
-}
-
-//=================================================================================================
-// Garbage Collection methods:
-
-void Solver::relocAll(ClauseAllocator& to)
-{
-    // All watchers:
-    //
-    // for (int i = 0; i < watches.size(); i++)
-    watches.cleanAll();
-    for (int v = 0; v < nVars(); v++)
-        for (int s = 0; s < 2; s++){
-            Lit p = mkLit(v, s);
-            vec<Watcher>& ws = watches[p];
-            for (auto& w : ws) {
-                ca.reloc(w.cref, to);
-            }
-        }
-
-    // All reasons:
-    //
-    for (auto const& t : trail) {
-        Var v = var(t);
-
-        if (reason(v) != CRef_Undef && (ca.lea(reason(v))->reloced() || locked(*ca.lea(reason(v)))))
-            ca.reloc(vardata[v].reason, to);
-    }
-
-    // All learnt:
-    //
-    for (auto& learnt : learnts) {
-        ca.reloc(learnt, to);
-    }
-
-    // All original:
-    //
-    for (auto& cl : clauses) {
-        ca.reloc(cl, to);
-    }
-}
-
-
-void Solver::garbageCollect()
-{
-    // Initialize the next region to a size corresponding to the estimated utilization degree. This
-    // is not precise but should avoid some unnecessary reallocations for the new region:
-    ClauseAllocator to;
-
-    relocAll(to);
-    if (verbosity >= 2)
-        fprintf(stderr, "|  Garbage collection:   %12d bytes => %12d bytes             |\n",
-               ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
-    to.moveTo(ca);
 }
