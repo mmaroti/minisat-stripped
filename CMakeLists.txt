@@ -21,7 +21,6 @@ add_library(libminisat STATIC
     minisat/mtl/Alloc.h
     minisat/mtl/Heap.h
     minisat/mtl/IntTypes.h
-    minisat/mtl/Map.h
     minisat/mtl/Sort.h
     minisat/mtl/Vec.h
 )

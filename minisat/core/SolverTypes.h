@@ -24,6 +24,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <cassert>
 #include <algorithm>
+#include <unordered_map>
 
 #include "minisat/mtl/IntTypes.h"
 #include "minisat/mtl/Alg.h"
@@ -324,8 +325,7 @@ class CMap
     struct CRefHash {
         uint32_t operator()(CRef cr) const { return (uint32_t)cr; } };
 
-    typedef Map<CRef, T, CRefHash> HashTable;
-    HashTable map;
+    std::unordered_map<CRef, T, CRefHash> map;
 
  public:
     // Size-operations:
@@ -342,17 +342,6 @@ class CMap
     // Vector interface (the clause 'c' must already exist):
     const T& operator [] (CRef cr) const      { return map[cr]; }
     T&       operator [] (CRef cr)            { return map[cr]; }
-
-    // Iteration (not transparent at all at the moment):
-    int  bucket_count() const { return map.bucket_count(); }
-    const vec<typename HashTable::Pair>& bucket(int i) const { return map.bucket(i); }
-
-    // Move contents to other map:
-    void moveTo(CMap& other){ map.moveTo(other.map); }
-
-    // TMP debug:
-    void debug(){
-        printf(" --- size = %d, bucket_count = %d\n", size(), map.bucket_count()); }
 };
 
 
