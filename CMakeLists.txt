@@ -14,7 +14,6 @@ add_library(libminisat STATIC
     # Impl files
     minisat/core/Solver.cc
     minisat/core/SolverTypes.cc
-    minisat/utils/Options.cc
     # Header files for IDEs
     minisat/core/Solver.h
     minisat/core/SolverTypes.h
@@ -27,7 +26,6 @@ add_library(libminisat STATIC
     minisat/mtl/Sort.h
     minisat/mtl/Vec.h
     minisat/mtl/XAlloc.h
-    minisat/utils/Options.h
 )
 
 # Keep the library named as either libminisat.a or minisat.lib
