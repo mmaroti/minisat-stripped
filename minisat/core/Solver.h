@@ -186,7 +186,7 @@ protected:
     lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
     lbool    solve_           ();                                                      // Main solve method (assumptions given in 'assumptions').
     void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
-    void     removeSatisfied  (std::vector<CRef>& cs);                                 // Shrink 'cs' to contain only non-satisfied clauses.
+    void     removeSatisfied  (std::vector<Clause*>& cs);                              // Shrink 'cs' to contain only non-satisfied clauses.
     void     rebuildOrderHeap ();
 
     // Maintaining Variable/Clause activity:
@@ -203,7 +203,7 @@ protected:
     void     detachClause     (CRef cr); // Detach a clause to watcher lists.
     void     removeClause     (CRef cr);               // Detach and free a clause.
     bool     locked           (const Clause& c) const; // Returns TRUE if a clause is a reason for some implication in the current state.
-    bool     satisfied        (const Clause& c) const; // Returns TRUE if a clause is satisfied in the current state.
+    bool     satisfied        (const Clause *c) const; // Returns true if a clause is satisfied in the current state.
 
     // Misc:
     //

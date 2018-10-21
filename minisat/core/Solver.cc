@@ -175,13 +175,12 @@ void Solver::removeClause(CRef cr) {
     delete cr;
 }
 
-
-bool Solver::satisfied(const Clause& c) const {
-    for (int i = 0; i < c.size(); i++)
-        if (value(c[i]) == l_True)
-            return true;
-    return false; }
-
+bool Solver::satisfied(const Clause *c) const {
+  for (Lit p : c->literals())
+    if (value(p) == l_True)
+      return true;
+  return false;
+}
 
 // Revert to the state at given level (keeping all assignment at 'level' but not beyond).
 //
@@ -487,6 +486,7 @@ namespace {
         }
     };
 }
+
 void Solver::reduceDB()
 {
     int     i, j;
@@ -505,25 +505,20 @@ void Solver::reduceDB()
     learnts.resize(j);
 }
 
-
-void Solver::removeSatisfied(std::vector<CRef>& cs)
-{
-    auto i = cs.begin();
-    auto j = cs.begin();
-    auto end = cs.end();
-    while (i != end) {
-        Clause& c = **i;
-        if (satisfied(c)) {
-            removeClause(*i);
-        } else {
-            *j = *i;
-            ++j;
-        }
-        ++i;
+void Solver::removeSatisfied(std::vector<Clause*> &cs) {
+  auto i = cs.begin();
+  auto j = cs.begin();
+  while (i != cs.end()) {
+    if (satisfied(*i))
+      removeClause(*i);
+    else {
+      *j = *i;
+      ++j;
     }
-    cs.erase(j, end);
+    ++i;
+  }
+  cs.erase(j, i);
 }
-
 
 void Solver::rebuildOrderHeap()
 {
@@ -533,7 +528,6 @@ void Solver::rebuildOrderHeap()
             vs.push(v);
     order_heap.build(vs);
 }
-
 
 /*_________________________________________________________________________________________________
 |

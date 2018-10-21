@@ -129,25 +129,26 @@ const CRef CRef_Undef = NULL;
 
 class Clause {
 private:
-  std::vector<Lit> literals;
+  std::vector<Lit> lits;
   float activity;
 
 public:
-  Clause(const vec<Lit> &ps, bool learnt) : literals(ps.size()) {
+  Clause(const vec<Lit> &ps, bool learnt) : lits(ps.size()) {
     for (int i = 0; i < ps.size(); i++)
-      literals[i] = ps[i];
+      lits[i] = ps[i];
 
     activity = learnt ? 0.0f : -1.0f;
   }
 
   Clause(std::vector<Lit> &lits, bool learnt)
-      : literals(std::move(lits)), activity(learnt ? 0.0f : -1.0f) {}
+      : lits(std::move(lits)), activity(learnt ? 0.0f : -1.0f) {}
 
-  int size() const { return literals.size(); }
+  int size() const { return lits.size(); }
   bool learnt() const { return activity >= 0.0f; }
+  const std::vector<Lit> &literals() const { return lits; }
 
-  Lit &operator[](int i) { return literals[i]; }
-  Lit operator[](int i) const { return literals[i]; }
+  Lit &operator[](int i) { return lits[i]; }
+  Lit operator[](int i) const { return lits[i]; }
 
   float get_activity() {
     assert(activity >= 0.0f);
