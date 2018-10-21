@@ -190,10 +190,6 @@ class ClauseAllocator
     void free(CRef r) { 
         delete[]((uint32_t*)r);
     }
-
-    // Deref, Load Effective Address (LEA), Inverse of LEA (AEL):
-    Clause*       lea       (CRef r)       { return (Clause*)r; }
-    const Clause* lea       (CRef r) const { return (Clause*)r; }
 };
 
 

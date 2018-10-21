@@ -155,7 +155,7 @@ bool Solver::addClause_(vec<Lit>& ps)
 
 
 void Solver::attachClause(CRef cr) {
-    const Clause& c = *ca.lea(cr);
+    const Clause& c = *cr;
     assert(c.size() > 1);
     watches[~c[0]].push(Watcher(cr, c[1]));
     watches[~c[1]].push(Watcher(cr, c[0]));
@@ -164,7 +164,7 @@ void Solver::attachClause(CRef cr) {
 
 
 void Solver::detachClause(CRef cr) {
-    const Clause& c = *ca.lea(cr);
+    const Clause& c = *cr;
     assert(c.size() > 1);
 
     remove(watches[~c[0]], Watcher(cr, c[1]));
@@ -175,7 +175,7 @@ void Solver::detachClause(CRef cr) {
 
 
 void Solver::removeClause(CRef cr) {
-    Clause& c = *ca.lea(cr);
+    Clause& c = *cr;
     detachClause(cr);
     // Don't leave pointers to free'd memory!
     if (locked(c)) vardata[var(c[0])].reason = CRef_Undef;
@@ -262,7 +262,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
-        Clause& c = *ca.lea(confl);
+        Clause& c = *confl;
 
         if (c.learnt())
             claBumpActivity(c);
@@ -310,7 +310,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             if (reason(x) == CRef_Undef)
                 out_learnt[j++] = out_learnt[i];
             else{
-                Clause& c = *ca.lea(reason(var(out_learnt[i])));
+                Clause& c = *reason(var(out_learnt[i]));
                 for (int k = 1; k < c.size(); k++)
                     if (!seen[var(c[k])] && level(var(c[k])) > 0){
                         out_learnt[j++] = out_learnt[i];
@@ -355,7 +355,7 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     int top = analyze_toclear.size();
     while (analyze_stack.size() > 0){
         assert(reason(var(analyze_stack.last())) != CRef_Undef);
-        Clause& c = *ca.lea(reason(var(analyze_stack.last()))); analyze_stack.pop();
+        Clause& c = *reason(var(analyze_stack.last())); analyze_stack.pop();
 
         for (int i = 1; i < c.size(); i++){
             Lit p  = c[i];
@@ -404,7 +404,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
                 assert(level(x) > 0);
                 out_conflict.push(~trail[i]);
             }else{
-                Clause& c = *ca.lea(reason(x));
+                Clause& c = *reason(x);
                 for (int j = 1; j < c.size(); j++)
                     if (level(var(c[j])) > 0)
                         seen[var(c[j])] = 1;
@@ -457,7 +457,7 @@ CRef Solver::propagate()
 
             // Make sure the false literal is data[1]:
             CRef     cr        = i->cref;
-            Clause&  c         = *ca.lea(cr);
+            Clause&  c         = *cr;
             Lit      false_lit = ~p;
             if (c[0] == false_lit)
                 c[0] = c[1], c[1] = false_lit;
@@ -512,7 +512,7 @@ namespace {
         ClauseAllocator& ca;
         reduceDB_lt(ClauseAllocator& ca_): ca(ca_) {}
         bool operator () (CRef x, CRef y) {
-            return ca.lea(x)->size() > 2 && (ca.lea(y)->size() == 2 || ca.lea(x)->activity() < ca.lea(y)->activity());
+            return x->size() > 2 && (y->size() == 2 || x->activity() < y->activity());
         }
     };
 }
@@ -525,7 +525,7 @@ void Solver::reduceDB()
     // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
     // and clauses with activity smaller than 'extra_lim':
     for (i = j = 0; i < learnts.size(); i++){
-        Clause& c = *ca.lea(learnts[i]);
+        Clause& c = *learnts[i];
         if (c.size() > 2 && !locked(c) && (i < learnts.size() / 2 || c.activity() < extra_lim))
             removeClause(learnts[i]);
         else
@@ -541,7 +541,7 @@ void Solver::removeSatisfied(vec<CRef>& cs)
     auto j = cs.begin();
     auto end = cs.end();
     while (i != end) {
-        Clause& c = *ca.lea(*i);
+        Clause& c = **i;
         if (satisfied(c)) {
             removeClause(*i);
         } else {
@@ -633,7 +633,7 @@ lbool Solver::search(int nof_conflicts)
                 CRef cr = ca.alloc(learnt_clause, true);
                 learnts.push(cr);
                 attachClause(cr);
-                claBumpActivity(*ca.lea(cr));
+                claBumpActivity(*cr);
                 uncheckedEnqueue(learnt_clause[0], cr);
             }
 

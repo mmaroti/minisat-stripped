@@ -140,7 +140,7 @@ protected:
     {
         const ClauseAllocator& ca;
         WatcherDeleted(const ClauseAllocator& _ca) : ca(_ca) {}
-        bool operator()(const Watcher& w) const { return ca.lea(w.cref)->mark() == 1; }
+        bool operator()(const Watcher& w) const { return w.cref->mark() == 1; }
     };
 
     struct VarOrderLt {
@@ -279,7 +279,7 @@ inline void Solver::claBumpActivity (Clause& c) {
     if ( (c.activity() = float(c.activity() + cla_inc)) > 1e20 ) {
         // Rescale:
         for (auto const& learnt : learnts) {
-            ca.lea(learnt)->activity() = float(ca.lea(learnt)->activity() * 1e-20);
+            learnt->activity() = float(learnt->activity() * 1e-20);
         }
         cla_inc *= 1e-20;
     }
@@ -292,7 +292,7 @@ inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(
 inline bool     Solver::addClause       (Lit p)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp); }
 inline bool     Solver::addClause       (Lit p, Lit q)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp); }
-inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef && ca.lea(reason(var(c[0]))) == &c; }
+inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef && reason(var(c[0])) == &c; }
 inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
