@@ -19,6 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 **************************************************************************************************/
 
 #include <math.h>
+#include <algorithm>
 
 #include "minisat/mtl/Sort.h"
 #include "minisat/core/Solver.h"
@@ -122,7 +123,7 @@ bool Solver::addClause_(vec<Lit>& ps)
     if (!ok) return false;
 
     // Check if clause is satisfied and remove false/duplicate literals:
-    sort(ps);
+    std::sort(ps.begin(), ps.end());
     Lit p = lit_Undef;
     auto i = ps.begin();
     auto j = ps.begin();
@@ -517,7 +518,7 @@ void Solver::reduceDB()
     int     i, j;
     float  extra_lim = cla_inc / learnts.size();    // Remove any clause below this activity
 
-    sort(learnts, reduceDB_lt());
+    std::sort(learnts.begin(), learnts.end(), reduceDB_lt());
     // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
     // and clauses with activity smaller than 'extra_lim':
     for (i = j = 0; i < learnts.size(); i++){

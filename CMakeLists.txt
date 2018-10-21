@@ -19,7 +19,6 @@ add_library(libminisat STATIC
     minisat/core/SolverTypes.h
     minisat/mtl/Alg.h
     minisat/mtl/Heap.h
-    minisat/mtl/Sort.h
     minisat/mtl/Vec.h
 )
 
