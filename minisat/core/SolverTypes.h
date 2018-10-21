@@ -125,30 +125,32 @@ typedef Clause *CRef;
 const CRef CRef_Undef = NULL;
 
 class Clause {
-    struct {
-        unsigned learnt    : 1;
-    } header;
-    float act;  // only for learned clauses
-    std::vector<Lit> data;
+  std::vector<Lit> literals;
+  float activity;
 
 public:
-    Clause(const vec<Lit>& ps, bool learnt) : data(ps.size()) {
-        header.learnt    = learnt;
+  Clause(const vec<Lit> &ps, bool learnt) : literals(ps.size()) {
+    for (int i = 0; i < ps.size(); i++)
+      literals[i] = ps[i];
 
-        for (int i = 0; i < ps.size(); i++)
-            data[i] = ps[i];
+    activity = learnt ? 0.0f : -1.0f;
+  }
 
-        if (header.learnt)
-            act = 0;
-    }
+  int size() const { return literals.size(); }
+  bool learnt() const { return activity >= 0.0f; }
 
-    int          size        ()      const   { return data.size(); }
-    bool         learnt      ()      const   { return header.learnt; }
+  Lit &operator[](int i) { return literals[i]; }
+  Lit operator[](int i) const { return literals[i]; }
 
-    Lit&         operator [] (int i)         { return data[i]; }
-    Lit          operator [] (int i) const   { return data[i]; }
+  float get_activity() {
+    assert(activity >= 0.0f);
+    return activity;
+  }
 
-    float&       activity    ()              { assert(header.learnt); return act; }
+  void set_activity(float a) {
+    assert(activity >= 0.0f && a >= 0.0f);
+    activity = a;
+  }
 };
 
 //=================================================================================================

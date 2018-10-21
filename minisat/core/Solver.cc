@@ -508,21 +508,21 @@ CRef Solver::propagate()
 namespace {
     struct reduceDB_lt {
         bool operator () (CRef x, CRef y) {
-            return x->size() > 2 && (y->size() == 2 || x->activity() < y->activity());
+            return x->size() > 2 && (y->size() == 2 || x->get_activity() < y->get_activity());
         }
     };
 }
 void Solver::reduceDB()
 {
     int     i, j;
-    double  extra_lim = cla_inc / learnts.size();    // Remove any clause below this activity
+    float  extra_lim = cla_inc / learnts.size();    // Remove any clause below this activity
 
     sort(learnts, reduceDB_lt());
     // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
     // and clauses with activity smaller than 'extra_lim':
     for (i = j = 0; i < learnts.size(); i++){
         Clause& c = *learnts[i];
-        if (c.size() > 2 && !locked(c) && (i < learnts.size() / 2 || c.activity() < extra_lim))
+        if (c.size() > 2 && !locked(c) && (i < learnts.size() / 2 || c.get_activity() < extra_lim))
             removeClause(learnts[i]);
         else
             learnts[j++] = learnts[i];

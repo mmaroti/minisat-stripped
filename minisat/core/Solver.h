@@ -261,10 +261,12 @@ inline void Solver::varBumpActivity(Var v, double inc) {
 
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity (Clause& c) {
-    if ( (c.activity() = float(c.activity() + cla_inc)) > 1e20 ) {
+    float a = c.get_activity() + cla_inc;
+    c.set_activity(a);
+    if ( a > 1e20f ) {
         // Rescale:
         for (auto const& learnt : learnts) {
-            learnt->activity() = float(learnt->activity() * 1e-20);
+            learnt->set_activity(learnt->get_activity() * 1e-20f);
         }
         cla_inc *= 1e-20;
     }
