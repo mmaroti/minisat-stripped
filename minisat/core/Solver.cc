@@ -110,7 +110,6 @@ Var Solver::newVar(bool sign, bool dvar)
     seen     .push_back(0);
     polarity .push_back(sign);
     decision .push_back(0);
-    trail    .capacity(v+1);
     setDecisionVar(v, dvar);
     return v;
 }
@@ -197,12 +196,12 @@ void Solver::cancelUntil(int level) {
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
-            if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.last()))
+            if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.back()))
                 polarity[x] = sign(trail[c]);
             insertVarOrder(x); }
         qhead = trail_lim[level];
-        trail.shrink(trail.size() - trail_lim[level]);
-        trail_lim.shrink(trail_lim.size() - level);
+        trail.resize(trail_lim[level]);
+        trail_lim.resize(level);
     } }
 
 
@@ -421,7 +420,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assert(value(p) == l_Undef);
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = mkVarData(from, decisionLevel());
-    trail.push_(p);
+    trail.push_back(p);
 }
 
 
@@ -644,7 +643,7 @@ lbool Solver::search(int nof_conflicts)
                 if (verbosity >= 1)
                     fprintf(stderr, "| %9d | %7d %8d %8d | %8d %8d %6.0f | %6.3f %% |\n",
                            (int)conflicts,
-                           (int)dec_vars - (trail_lim.empty() ? trail.size() : trail_lim[0]), nClauses(), (int)clauses_literals,
+                           (int)dec_vars - (trail_lim.empty() ? (int)trail.size() : trail_lim[0]), nClauses(), (int)clauses_literals,
                            (int)max_learnts, nLearnts(), (double)learnts_literals/nLearnts(), progressEstimate()*100);
             }
 
