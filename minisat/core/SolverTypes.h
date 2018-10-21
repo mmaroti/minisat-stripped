@@ -134,13 +134,6 @@ private:
 public:
   static constexpr CRef UNDEF = NULL;
 
-  Clause(const vec<Lit> &ps, bool learnt) : lits(ps.size()) {
-    for (int i = 0; i < ps.size(); i++)
-      lits[i] = ps[i];
-
-    activity = learnt ? 0.0f : -1.0f;
-  }
-
   Clause(std::vector<Lit> &lits, bool learnt)
       : lits(std::move(lits)), activity(learnt ? 0.0f : -1.0f) {}
 

@@ -203,14 +203,14 @@ Lit Solver::pickBranchLit()
 |        rest of literals. There may be others from the same level though.
 |
 |________________________________________________________________________________________________@*/
-void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
+void Solver::analyze(CRef confl, std::vector<Lit>& out_learnt, int& out_btlevel)
 {
     int pathC = 0;
     Lit p     = lit_Undef;
 
     // Generate conflict clause:
     //
-    out_learnt.push();      // (leave room for the asserting literal)
+    out_learnt.push_back(lit_Undef);      // (leave room for the asserting literal)
     int index   = trail.size() - 1;
 
     do{
@@ -229,7 +229,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 if (level(q.var()) >= decisionLevel())
                     pathC++;
                 else
-                    out_learnt.push(q);
+                    out_learnt.push_back(q);
             }
         }
 
@@ -246,7 +246,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     // Simplify conflict clause:
     //
     int i, j;
-    out_learnt.copyTo(analyze_toclear);
+    analyze_toclear = out_learnt;
 
     uint32_t abstract_level = 0;
     for (i = 1; i < out_learnt.size(); i++)
@@ -257,7 +257,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             out_learnt[j++] = out_learnt[i];
 
     max_literals += out_learnt.size();
-    out_learnt.shrink(i - j);
+    out_learnt.resize(j);
     tot_literals += out_learnt.size();
 
     // Find correct backtrack level:
@@ -540,7 +540,7 @@ lbool Solver::search(int nof_conflicts)
     assert(ok);
     int         backtrack_level;
     int         conflictC = 0;
-    vec<Lit>    learnt_clause;
+    std::vector<Lit>    learnt_clause;
     starts++;
 
     for (;;){
@@ -557,11 +557,12 @@ lbool Solver::search(int nof_conflicts)
             if (learnt_clause.size() == 1){
                 uncheckedEnqueue(learnt_clause[0]);
             }else{
+                Lit p = learnt_clause[0];
                 CRef cr = new Clause(learnt_clause, true);
                 learnts.push_back(cr);
                 attachClause(cr);
                 claBumpActivity(*cr);
-                uncheckedEnqueue(learnt_clause[0], cr);
+                uncheckedEnqueue(p, cr);
             }
 
             varDecayActivity();
