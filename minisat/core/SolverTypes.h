@@ -121,7 +121,7 @@ inline lbool toLbool(int   v) { return lbool((uint8_t)v);  }
 // Clause -- a simple class for representing a clause:
 
 class Clause;
-typedef uint32_t *CRef;
+typedef Clause *CRef;
 
 class Clause {
     struct {
@@ -181,14 +181,14 @@ class ClauseAllocator
         assert(sizeof(Lit)      == sizeof(uint32_t));
         assert(sizeof(float)    == sizeof(uint32_t));
 
-        CRef cid = new uint32_t[clauseWord32Size(ps.size(), learnt)];
-        new (lea(cid)) Clause(ps, learnt);
+        Clause *cid = (Clause*)new uint32_t[clauseWord32Size(ps.size(), learnt)];
+        new (cid) Clause(ps, learnt);
 
         return cid;
     }
 
     void free(CRef r) { 
-        delete[](r);
+        delete[]((uint32_t*)r);
     }
 
     // Deref, Load Effective Address (LEA), Inverse of LEA (AEL):
