@@ -138,7 +138,7 @@ protected:
     double              var_inc;          // Amount to bump next variable with.
     std::vector<std::vector<Watcher>> watches; // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
     std::vector<lbool>  assigns;          // The current assignments.
-    std::vector<char>   polarity;         // The preferred polarity of each variable.
+    std::vector<bool>   polarity;         // The preferred polarity of each variable.
     std::vector<char>   decision;         // Declares if a variable is eligible for selection in the decision heuristic.
     std::vector<Lit>    trail;            // Assignment stack; stores all assigments made in the order they were made.
     std::vector<int>    trail_lim;        // Separator indices for different decision levels in 'trail'.

@@ -38,39 +38,30 @@ namespace Minisat {
 // so that they can be used as array indices.
 
 typedef int Var;
-#define var_Undef (-1)
+constexpr Var var_Undef(-1);
 
 class Lit {
 protected:
   int x;
 
+  explicit constexpr Lit(int x, int b) : x(x ^ b) {}
+
 public:
   Lit() = default;
   constexpr Lit(const Lit &) = default;
-  constexpr Lit(Var var, bool sign = false) : x(var + var + (int)sign) {}
+  explicit constexpr Lit(Var var, bool sign = false) : x(var + var + (int)sign) {}
 
-  inline bool operator==(Lit p) const { return x == p.x; }
-  inline bool operator!=(Lit p) const { return x != p.x; }
-
-  inline bool operator<(Lit p) const {
+  constexpr bool operator==(Lit p) const { return x == p.x; }
+  constexpr bool operator!=(Lit p) const { return x != p.x; }
+  constexpr bool operator<(Lit p) const {
     return x < p.x; // '<' makes p, ~p adjacent in the ordering.
   }
 
-  inline Lit operator~() const {
-    Lit p;
-    p.x = x ^ 1;
-    return p;
-  }
-
-  inline Lit operator^(bool b) const {
-    Lit p;
-    p.x = x ^ (unsigned int)b;
-    return p;
-  }
-
-  inline bool sign() const { return x & 1; }
-  inline int var() const { return x >> 1; }
-  inline int toInt() const { return x; }
+  constexpr Lit operator~() const { return Lit(x, 1); }
+  Lit operator^(bool b) const { return Lit(x, (int)b); }
+  constexpr bool sign() const { return x & 1; }
+  constexpr Var var() const { return x >> 1; }
+  constexpr int toInt() const { return x; }
 };
 
 constexpr Lit lit_Undef(var_Undef, false);
