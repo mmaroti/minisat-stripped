@@ -45,8 +45,7 @@ Solver::Solver()
 
       // State
       ok(true), cla_inc(1), var_inc(1), watches(), qhead(0), simpDB_assigns(-1),
-      simpDB_props(0), order_heap({activity}),
-      asynch_interrupt(false) {}
+      simpDB_props(0), order_heap({activity}), asynch_interrupt(false) {}
 
 // Problem specification:
 
@@ -57,8 +56,8 @@ Lit Solver::addLiteral(bool sign, bool dvar) {
     watches.resize(l);
 
   assigns.push_back(l_Undef);
-  vardata.push_back(VarData{Clause::UNDEF, 0});
-  activity.push_back(rnd_init_act ? drand() * 0.00001 : 0);
+  vardata.push_back({Clause::UNDEF, 0});
+  activity.push_back(rnd_init_act ? drand() * 0.00001 : 0.0);
   analyze_seen.push_back(false);
   polarity.push_back(sign);
   decision.push_back(0);
@@ -67,43 +66,40 @@ Lit Solver::addLiteral(bool sign, bool dvar) {
   return Lit(v, true);
 }
 
-bool Solver::giveClause(std::vector<Lit>& ps)
-{
-    assert(decisionLevel() == 0);
-    if (!ok) return false;
+bool Solver::takeClause(std::vector<Lit> &ps) {
+  assert(decisionLevel() == 0);
+  if (!ok)
+    return false;
 
-    // Check if clause is satisfied and remove false/duplicate literals:
-    std::sort(ps.begin(), ps.end());
-    Lit p = lit_Undef;
-    auto i = ps.begin();
-    auto j = ps.begin();
-    auto end = ps.end();
-    while (i != end) {
-        if (value(*i) == l_True || *i == ~p) {
-            return true;
-        }
-        else if (value(*i) != l_False && *i != p) {
-            *j = p = *i;
-            ++j;
-        }
-        ++i;
+  // Check if clause is satisfied and remove false/duplicate literals:
+  std::sort(ps.begin(), ps.end());
+  Lit p = lit_Undef;
+  auto i = ps.begin();
+  auto j = ps.begin();
+  auto end = ps.end();
+  while (i != end) {
+    if (value(*i) == l_True || *i == ~p) {
+      return true;
+    } else if (value(*i) != l_False && *i != p) {
+      *j = p = *i;
+      ++j;
     }
-    ps.erase(j, ps.end());
+    ++i;
+  }
+  ps.erase(j, ps.end());
 
-    if (ps.empty()) {
-        return ok = false;
-    } else if (ps.size() == 1) {
-        uncheckedEnqueue(ps[0]);
-        return ok = (propagate() == Clause::UNDEF);
-    } else {
-        CRef cr = new Clause(ps, false);
-        clauses.push_back(cr);
-        attachClause(cr);
-    }
+  if (ps.empty())
+    return ok = false;
+  else if (ps.size() == 1) {
+    uncheckedEnqueue(ps[0]);
+    return ok = (propagate() == Clause::UNDEF);
+  }
 
-    return true;
+  CRef cr = new Clause(ps, false);
+  clauses.push_back(cr);
+  attachClause(cr);
+  return true;
 }
-
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = *cr;

@@ -36,7 +36,7 @@ public:
 
   // Problem specification:
   Lit addLiteral(bool polarity = true, bool decision = true);
-  bool giveClause(std::vector<Lit> &ps);      // empties the source vector
+  bool takeClause(std::vector<Lit> &ps);      // empties the source vector
   bool addClause();                           // make the solver contraditory
   bool addClause(Lit p);                      // add unit clause
   bool addClause(Lit p, Lit q);               // add binary clause
@@ -193,20 +193,20 @@ protected:
 
 inline bool Solver::addClause() {
   addclause_temp.clear();
-  return giveClause(addclause_temp);
+  return takeClause(addclause_temp);
 }
 
 inline bool Solver::addClause(Lit p) {
   addclause_temp.clear();
   addclause_temp.push_back(p);
-  return giveClause(addclause_temp);
+  return takeClause(addclause_temp);
 }
 
 inline bool Solver::addClause(Lit p, Lit q) {
   addclause_temp.clear();
   addclause_temp.push_back(p);
   addclause_temp.push_back(q);
-  return giveClause(addclause_temp);
+  return takeClause(addclause_temp);
 }
 
 inline bool Solver::addClause(Lit p, Lit q, Lit r) {
@@ -214,12 +214,12 @@ inline bool Solver::addClause(Lit p, Lit q, Lit r) {
   addclause_temp.push_back(p);
   addclause_temp.push_back(q);
   addclause_temp.push_back(r);
-  return giveClause(addclause_temp);
+  return takeClause(addclause_temp);
 }
 
 inline bool Solver::addClause(const std::vector<Lit> &ps) {
   addclause_temp = ps;
-  return giveClause(addclause_temp);
+  return takeClause(addclause_temp);
 }
 
 // Solving:
