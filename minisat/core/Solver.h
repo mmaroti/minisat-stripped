@@ -172,8 +172,8 @@ protected:
     void     insertVarOrder   (Var x);                                                 // Insert a variable in the decision order priority queue.
     Lit      pickBranchLit    ();                                                      // Return the next decision variable.
     void     newDecisionLevel ();                                                      // Begins a new decision level.
-    void     uncheckedEnqueue (Lit p, CRef from = CRef_Undef);                         // Enqueue a literal. Assumes value of literal is undefined.
-    bool     enqueue          (Lit p, CRef from = CRef_Undef);                         // Test if fact 'p' contradicts current state, enqueue otherwise.
+    void     uncheckedEnqueue (Lit p, CRef from = Clause::UNDEF);                      // Enqueue a literal. Assumes value of literal is undefined.
+    bool     enqueue          (Lit p, CRef from = Clause::UNDEF);                      // Test if fact 'p' contradicts current state, enqueue otherwise.
     CRef     propagate        ();                                                      // Perform unit propagation. Returns possibly conflicting clause.
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
     void     analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
@@ -265,7 +265,7 @@ inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(
 inline bool     Solver::addClause       (Lit p)                 { add_tmp.clear(); add_tmp.push_back(p); return addClause_(add_tmp); }
 inline bool     Solver::addClause       (Lit p, Lit q)          { add_tmp.clear(); add_tmp.push_back(p); add_tmp.push_back(q); return addClause_(add_tmp); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push_back(p); add_tmp.push_back(q); add_tmp.push_back(r); return addClause_(add_tmp); }
-inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(c[0].var()) != CRef_Undef && reason(c[0].var()) == &c; }
+inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(c[0].var()) != Clause::UNDEF && reason(c[0].var()) == &c; }
 inline void     Solver::newDecisionLevel()                      { trail_lim.push_back(trail.size()); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }

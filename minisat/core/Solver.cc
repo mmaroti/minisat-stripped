@@ -62,7 +62,7 @@ Var Solver::newVar(bool sign, bool dvar)
     watches.growTo(Lit(v, false).toInt() + 1);
     watches.growTo(Lit(v, true).toInt() + 1);
     assigns  .push_back(l_Undef);
-    vardata  .push_back(mkVarData(CRef_Undef, 0));
+    vardata  .push_back(mkVarData(Clause::UNDEF, 0));
     activity .push_back(rnd_init_act ? drand() * 0.00001 : 0);
     seen     .push_back(0);
     polarity .push_back(sign);
@@ -99,7 +99,7 @@ bool Solver::addClause_(std::vector<Lit>& ps)
         return ok = false;
     } else if (ps.size() == 1) {
         uncheckedEnqueue(ps[0]);
-        return ok = (propagate() == CRef_Undef);
+        return ok = (propagate() == Clause::UNDEF);
     } else {
         CRef cr = new Clause(ps, false);
         clauses.push_back(cr);
@@ -134,7 +134,7 @@ void Solver::removeClause(CRef cr) {
     Clause& c = *cr;
     detachClause(cr);
     // Don't leave pointers to free'd memory!
-    if (locked(c)) vardata[c[0].var()].reason = CRef_Undef;
+    if (locked(c)) vardata[c[0].var()].reason = Clause::UNDEF;
     delete cr;
 }
 
@@ -214,7 +214,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     int index   = trail.size() - 1;
 
     do{
-        assert(confl != CRef_Undef); // (otherwise should be UIP)
+        assert(confl != Clause::UNDEF); // (otherwise should be UIP)
         Clause& c = *confl;
 
         if (c.learnt())
@@ -253,7 +253,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         abstract_level |= abstractLevel(out_learnt[i].var()); // (maintain an abstraction of levels involved in conflict)
 
     for (i = j = 1; i < out_learnt.size(); i++)
-        if (reason(out_learnt[i].var()) == CRef_Undef || !litRedundant(out_learnt[i], abstract_level))
+        if (reason(out_learnt[i].var()) == Clause::UNDEF || !litRedundant(out_learnt[i], abstract_level))
             out_learnt[j++] = out_learnt[i];
 
     max_literals += out_learnt.size();
@@ -290,13 +290,13 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     analyze_stack.clear(); analyze_stack.push_back(p);
     int top = analyze_toclear.size();
     while (analyze_stack.size() > 0){
-        assert(reason(analyze_stack.back().var()) != CRef_Undef);
+        assert(reason(analyze_stack.back().var()) != Clause::UNDEF);
         Clause& c = *reason(analyze_stack.back().var()); analyze_stack.pop_back();
 
         for (int i = 1; i < c.size(); i++){
             Lit p  = c[i];
             if (!seen[p.var()] && level(p.var()) > 0){
-                if (reason(p.var()) != CRef_Undef && (abstractLevel(p.var()) & abstract_levels) != 0){
+                if (reason(p.var()) != Clause::UNDEF && (abstractLevel(p.var()) & abstract_levels) != 0){
                     seen[p.var()] = 1;
                     analyze_stack.push_back(p);
                     analyze_toclear.push_back(p);
@@ -336,7 +336,7 @@ void Solver::analyzeFinal(Lit p, std::vector<Lit>& out_conflict)
     for (int i = trail.size()-1; i >= trail_lim[0]; i--){
         Var x = trail[i].var();
         if (seen[x]){
-            if (reason(x) == CRef_Undef){
+            if (reason(x) == Clause::UNDEF){
                 assert(level(x) > 0);
                 out_conflict.push_back(~trail[i]);
             }else{
@@ -368,14 +368,14 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
 |
 |  Description:
 |    Propagates all enqueued facts. If a conflict arises, the conflicting clause is returned,
-|    otherwise CRef_Undef.
+|    otherwise Clause::UNDEF.
 |
 |    Post-conditions:
 |      * the propagation queue is empty, even if there was a conflict.
 |________________________________________________________________________________________________@*/
 CRef Solver::propagate()
 {
-    CRef    confl     = CRef_Undef;
+    CRef    confl     = Clause::UNDEF;
     int     num_props = 0;
 
     while (qhead < trail.size()){
@@ -504,7 +504,7 @@ bool Solver::simplify()
 {
     assert(decisionLevel() == 0);
 
-    if (!ok || propagate() != CRef_Undef)
+    if (!ok || propagate() != Clause::UNDEF)
         return ok = false;
 
     if (nAssigns() == simpDB_assigns || (simpDB_props > 0))
@@ -545,7 +545,7 @@ lbool Solver::search(int nof_conflicts)
 
     for (;;){
         CRef confl = propagate();
-        if (confl != CRef_Undef){
+        if (confl != Clause::UNDEF){
             // CONFLICT
             conflicts++; conflictC++;
             if (decisionLevel() == 0) return l_False;

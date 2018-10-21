@@ -125,7 +125,6 @@ inline lbool toLbool(int   v) { return lbool((uint8_t)v);  }
 
 class Clause;
 typedef Clause *CRef;
-const CRef CRef_Undef = NULL;
 
 class Clause {
 private:
@@ -133,6 +132,8 @@ private:
   float activity;
 
 public:
+  static constexpr CRef UNDEF = NULL;
+
   Clause(const vec<Lit> &ps, bool learnt) : lits(ps.size()) {
     for (int i = 0; i < ps.size(); i++)
       lits[i] = ps[i];
