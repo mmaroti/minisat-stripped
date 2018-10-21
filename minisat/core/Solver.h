@@ -29,13 +29,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace Minisat {
 
-//=================================================================================================
-// Solver -- the main class:
-
 class Solver {
 public:
-
-    // Constructor:
     Solver();
 
     // Problem specification:
@@ -117,9 +112,9 @@ protected:
     static inline VarData mkVarData(CRef cr, int l){ VarData d = {cr, l}; return d; }
 
     struct VarOrderLt {
-        const std::vector<double>&  activity;
+        const std::vector<float>&  activity;
         bool operator () (Var x, Var y) const { return activity[x] > activity[y]; }
-        VarOrderLt(const std::vector<double>&  act) : activity(act) { }
+        VarOrderLt(const std::vector<float>&  act) : activity(act) { }
     };
 
     // Solver state:
@@ -128,7 +123,7 @@ protected:
     std::vector<CRef>   clauses;          // List of problem clauses.
     std::vector<CRef>   learnts;          // List of learnt clauses.
     double              cla_inc;          // Amount to bump next clause with.
-    std::vector<double> activity;         // A heuristic measurement of the activity of a variable.
+    std::vector<float>  activity;         // A heuristic measurement of the activity of a variable.
     double              var_inc;          // Amount to bump next variable with.
     std::vector<std::vector<Watcher>> watches; // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
     std::vector<lbool>  assigns;          // The current assignments.
@@ -143,13 +138,11 @@ protected:
     std::vector<Lit>    assumptions;      // Current set of assumptions provided to solve by the user.
     Heap<VarOrderLt>    order_heap;       // A priority queue of variables ordered with respect to the variable activity.
 
-    // Temporaries (to reduce allocation overhead). Each variable is prefixed by the method in which it is
-    // used, exept 'seen' wich is used in several places.
-    //
-    std::vector<char>   seen;
-    std::vector<Lit>    analyze_stack;
-    std::vector<Lit>    analyze_toclear;
-    std::vector<Lit>    addclause_temp;
+    // Temporaries (to reduce allocation overhead)
+    std::vector<bool> analyze_seen;
+    std::vector<Lit> analyze_stack;
+    std::vector<Lit> analyze_toclear;
+    std::vector<Lit> addclause_temp;
 
     double              max_learnts;
     double              learntsize_adjust_confl;
@@ -255,10 +248,10 @@ inline void Solver::insertVarOrder(Var x) {
 }
 
 inline void Solver::varBumpActivity(Var v) {
-  if ((activity[v] += var_inc) > 1e100) {
+  if ((activity[v] += var_inc) > 1e20f) {
     for (int i = 0; i < nVars(); i++)
-      activity[i] *= 1e-100;
-    var_inc *= 1e-100;
+      activity[i] *= 1e-20f;
+    var_inc *= 1e-20;
   }
 
   if (order_heap.inHeap(v))
