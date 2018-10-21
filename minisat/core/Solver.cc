@@ -106,8 +106,7 @@ Var Solver::newVar(bool sign, bool dvar)
     watches.growTo(toInt(mkLit(v, true)) + 1);
     assigns  .push(l_Undef);
     vardata  .push(mkVarData(CRef_Undef, 0));
-    //activity .push(0);
-    activity .push(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
+    activity .push_back(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen     .push(0);
     polarity .push(sign);
     decision .push();

@@ -42,15 +42,6 @@ static inline void remove(V& ts, const T& t)
     ts.pop();
 }
 
-
-template<class V, class T>
-static inline bool find(V& ts, const T& t)
-{
-    int j = 0;
-    for (; j < ts.size() && ts[j] != t; j++);
-    return j < ts.size();
-}
-
 }
 
 #endif
