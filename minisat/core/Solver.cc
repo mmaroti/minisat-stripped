@@ -452,7 +452,7 @@ CRef Solver::propagate()
 namespace {
     struct reduceDB_lt {
         bool operator () (CRef x, CRef y) {
-            return x->size() > 2 && (y->size() == 2 || x->get_activity() < y->get_activity());
+            return x->size() > 2 && (y->size() == 2 || x->activity() < y->activity());
         }
     };
 }
@@ -467,7 +467,7 @@ void Solver::reduceDB()
     // and clauses with activity smaller than 'extra_lim':
     for (i = j = 0; i < learnts.size(); i++){
         Clause& c = *learnts[i];
-        if (c.size() > 2 && !locked(c) && (i < learnts.size() / 2 || c.get_activity() < extra_lim))
+        if (c.size() > 2 && !locked(c) && (i < learnts.size() / 2 || c.activity() < extra_lim))
             removeClause(learnts[i]);
         else
             learnts[j++] = learnts[i];

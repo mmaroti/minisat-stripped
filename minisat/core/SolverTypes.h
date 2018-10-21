@@ -106,29 +106,24 @@ typedef Clause *CRef;
 class Clause {
 private:
   std::vector<Lit> lits;
-  float activity;
+  float act;
 
 public:
   static constexpr CRef UNDEF = NULL;
 
   Clause(std::vector<Lit> &lits, bool learnt)
-      : lits(std::move(lits)), activity(learnt ? 0.0f : -1.0f) {}
+      : lits(std::move(lits)), act(learnt ? 0.0f : -1.0f) {}
 
   int size() const { return lits.size(); }
-  bool learnt() const { return activity >= 0.0f; }
+  bool learnt() const { return act >= 0.0f; }
   const std::vector<Lit> &literals() const { return lits; }
 
   Lit &operator[](int i) { return lits[i]; }
   Lit operator[](int i) const { return lits[i]; }
 
-  float get_activity() {
-    assert(activity >= 0.0f);
-    return activity;
-  }
-
-  void set_activity(float a) {
-    assert(activity >= 0.0f && a >= 0.0f);
-    activity = a;
+  float &activity() {
+    assert(act >= 0.0f);
+    return act;
   }
 };
 

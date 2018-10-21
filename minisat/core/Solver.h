@@ -184,12 +184,10 @@ protected:
     void     rebuildOrderHeap ();
 
     // Maintaining Variable/Clause activity:
-    //
-    void     varDecayActivity ();                      // Decay all variables with the specified factor. Implemented by increasing the 'bump' value instead.
-    void     varBumpActivity  (Var v, double inc);     // Increase a variable with the current 'bump' value.
-    void     varBumpActivity  (Var v);                 // Increase a variable with the current 'bump' value.
-    void     claDecayActivity ();                      // Decay all clauses with the specified factor. Implemented by increasing the 'bump' value instead.
-    void     claBumpActivity  (Clause& c);             // Increase a clause with the current 'bump' value.
+    void varDecayActivity() { var_inc *= (1.0 / var_decay); }
+    void varBumpActivity(Var v);
+    void claDecayActivity() { cla_inc *= (1.0 / clause_decay); }
+    void claBumpActivity(Clause &c);
 
     // Operations on clauses:
     //
@@ -203,8 +201,8 @@ protected:
     //
     int      decisionLevel    ()      const; // Gives the current decisionlevel.
     uint32_t abstractLevel    (Var x) const; // Used to represent an abstraction of sets of decision levels.
-    CRef     reason           (Var x) const;
-    int      level            (Var x) const;
+    CRef     reason           (Var x) const { return vardata[x].reason; }
+    int      level            (Var x) const { return vardata[x].level; }
 
     // Static helpers:
     //
@@ -224,36 +222,28 @@ protected:
 //=================================================================================================
 // Implementation of inline methods:
 
-inline CRef Solver::reason(Var x) const { return vardata[x].reason; }
-inline int  Solver::level (Var x) const { return vardata[x].level; }
-
 inline void Solver::insertVarOrder(Var x) {
-    if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
+  if (!order_heap.inHeap(x) && decision[x])
+    order_heap.insert(x);
+}
 
-inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
-inline void Solver::varBumpActivity(Var v) { varBumpActivity(v, var_inc); }
-inline void Solver::varBumpActivity(Var v, double inc) {
-    if ( (activity[v] += inc) > 1e100 ) {
-        // Rescale:
-        for (int i = 0; i < nVars(); i++)
-            activity[i] *= 1e-100;
-        var_inc *= 1e-100; }
+inline void Solver::varBumpActivity(Var v) {
+  if ((activity[v] += var_inc) > 1e100) {
+    for (int i = 0; i < nVars(); i++)
+      activity[i] *= 1e-100;
+    var_inc *= 1e-100;
+  }
 
-    // Update order_heap with respect to new activity:
-    if (order_heap.inHeap(v))
-        order_heap.decrease(v); }
+  if (order_heap.inHeap(v))
+    order_heap.decrease(v);
+}
 
-inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
-inline void Solver::claBumpActivity (Clause& c) {
-    float a = c.get_activity() + cla_inc;
-    c.set_activity(a);
-    if ( a > 1e20f ) {
-        // Rescale:
-        for (auto const& learnt : learnts) {
-            learnt->set_activity(learnt->get_activity() * 1e-20f);
-        }
-        cla_inc *= 1e-20;
-    }
+inline void Solver::claBumpActivity(Clause &c) {
+  if ((c.activity() += cla_inc) > 1e20f) {
+    for (Clause *learnt : learnts)
+      learnt->activity() *= 1e-20f;
+    cla_inc *= 1e-20;
+  }
 }
 
 // NOTE: enqueue does not set the ok flag! (only public methods do)
