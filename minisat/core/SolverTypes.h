@@ -128,7 +128,8 @@ class Clause {
         unsigned mark      : 2;
         unsigned learnt    : 1;
         unsigned size      : 27; }                            header;
-    union data_union { Lit lit; float act; } data[0];
+    float act;  // only for learned clauses
+    Lit data[0];
 
     friend class ClauseAllocator;
 
@@ -139,10 +140,10 @@ class Clause {
         header.size      = ps.size();
 
         for (int i = 0; i < ps.size(); i++)
-            data[i].lit = ps[i];
+            data[i] = ps[i];
 
         if (header.learnt)
-            data[header.size].act = 0;
+            act = 0;
     }
 
 public:
@@ -151,10 +152,10 @@ public:
     uint32_t     mark        ()      const   { return header.mark; }
     void         mark        (uint32_t m)    { header.mark = m; }
 
-    Lit&         operator [] (int i)         { return data[i].lit; }
-    Lit          operator [] (int i) const   { return data[i].lit; }
+    Lit&         operator [] (int i)         { return data[i]; }
+    Lit          operator [] (int i) const   { return data[i]; }
 
-    float&       activity    ()              { assert(header.learnt); return data[header.size].act; }
+    float&       activity    ()              { assert(header.learnt); return act; }
 };
 
 
@@ -166,7 +167,7 @@ const CRef CRef_Undef = NULL;
 class ClauseAllocator 
 {
     static int clauseWord32Size(int size, bool learnt){
-        return (sizeof(Clause) + (sizeof(Lit) * (size + (int)learnt))) / sizeof(uint32_t); }
+        return (sizeof(Clause) + sizeof(Lit) * size) / sizeof(uint32_t); }
  public:
     template<class Lits>
     CRef alloc(const Lits& ps, bool learnt = false)
