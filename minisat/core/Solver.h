@@ -34,23 +34,24 @@ public:
     Solver();
 
     // Problem specification:
-    Var newVar(bool polarity = true, bool decision = true);
+    Lit addLiteral(bool polarity = true, bool decision = true);
     bool giveClause(std::vector<Lit> &ps);      // empties the source vector
     bool addClause();                           // make the solver contraditory
     bool addClause(Lit p);                      // add unit clause
     bool addClause(Lit p, Lit q);               // add binary clause
     bool addClause(Lit p, Lit q, Lit r);        // add ternary clause
-    bool addClause(const std::vector<Lit> &ps); // returns if contradictory
+    bool addClause(const std::vector<Lit> &ps); // ret false if contradictory
 
     // Solving:
-    //
-    bool    simplify     ();                        // Removes already satisfied clauses.
-    bool    solve        (const std::vector<Lit>& assumps); // Search for a model that respects a given set of assumptions.
-    bool    solve        ();                        // Search without assumptions.
-    bool    solve        (Lit p);                   // Search for a model that respects a single assumption.
-    bool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
-    bool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
-    bool    okay         () const;                  // FALSE means solver is in a conflicting state
+    bool simplify();                 // removes already satisfied clauses
+    bool solve();                    // search without assumptions
+    bool solve(Lit p);               // use a single assumption
+    bool solve(Lit p, Lit q);        // use two assumptions
+    bool solve(Lit p, Lit q, Lit r); // use tree assumptions
+    bool solve(const std::vector<Lit> &assumps);
+    bool okay() const; // check if solver not in contradictory
+    void interrupt();  // ask solver to return cleanly
+    void clearInterrupt();
 
     // Variable mode:
     //
@@ -67,10 +68,6 @@ public:
     int     nLearnts   ()      const;       // The current number of learnt clauses.
     int     nVars      ()      const;       // The current number of variables.
     int     nFreeVars  ()      const;
-
-    // Interrupt
-    void interrupt(); // solver will return cleanly
-    void clearInterrupt();
 
     // Extra results: (read-only member variable)
     //
@@ -238,9 +235,43 @@ inline bool Solver::addClause(const std::vector<Lit> &ps) {
   return giveClause(addclause_temp);
 }
 
-// Interrupt
+// Solving:
+
+inline bool Solver::solve() {
+  assumptions.clear();
+  return solve_() == l_True;
+}
+
+inline bool Solver::solve(Lit p) {
+  assumptions.clear();
+  assumptions.push_back(p);
+  return solve_() == l_True;
+}
+
+inline bool Solver::solve(Lit p, Lit q) {
+  assumptions.clear();
+  assumptions.push_back(p);
+  assumptions.push_back(q);
+  return solve_() == l_True;
+}
+
+inline bool Solver::solve(Lit p, Lit q, Lit r) {
+  assumptions.clear();
+  assumptions.push_back(p);
+  assumptions.push_back(q);
+  assumptions.push_back(r);
+  return solve_() == l_True;
+}
+
+inline bool Solver::solve(const std::vector<Lit> &assumps) {
+  assumptions = assumps;
+  return solve_() == l_True;
+}
+
+inline bool Solver::okay() const { return ok; }
 
 inline void Solver::interrupt() { asynch_interrupt = true; }
+
 inline void Solver::clearInterrupt() { asynch_interrupt = false; }
 
 // Activity
@@ -294,20 +325,6 @@ inline void     Solver::setDecisionVar(Var v, bool b)
     insertVarOrder(v);
 }
 
-// FIXME: after the introduction of asynchronous interrruptions the solve-versions that return a
-// pure bool do not give a safe interface. Either interrupts must be possible to turn off here, or
-// all calls to solve must return an 'lbool'. I'm not yet sure which I prefer.
-inline bool     Solver::solve         ()                    { assumptions.clear(); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p)               { assumptions.clear(); assumptions.push_back(p); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q)        { assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q, Lit r) { assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); assumptions.push_back(r); return solve_() == l_True; }
-inline bool     Solver::solve         (const std::vector<Lit>& assumps){ assumptions = assumps; return solve_() == l_True; }
-inline bool     Solver::okay          ()      const   { return ok; }
-
-
-
-
-//=================================================================================================
 }
 
 #endif

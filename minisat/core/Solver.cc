@@ -55,7 +55,7 @@ Solver::Solver()
 // Creates a new SAT variable in the solver. If 'decision' is cleared, variable will not be
 // used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
 //
-Var Solver::newVar(bool sign, bool dvar)
+Lit Solver::addLiteral(bool sign, bool dvar)
 {
     int v = nVars();
     int l = std::max(Lit(v, false).toInt() + 1, Lit(v, true).toInt() + 1);
@@ -68,7 +68,7 @@ Var Solver::newVar(bool sign, bool dvar)
     polarity .push_back(sign);
     decision .push_back(0);
     setDecisionVar(v, dvar);
-    return v;
+    return Lit(v, true);
 }
 
 
