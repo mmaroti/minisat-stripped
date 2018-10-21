@@ -101,8 +101,8 @@ Solver::~Solver()
 Var Solver::newVar(bool sign, bool dvar)
 {
     int v = nVars();
-    watches  .init(mkLit(v, false));
-    watches  .init(mkLit(v, true ));
+    watches.growTo(toInt(mkLit(v, false)) + 1);
+    watches.growTo(toInt(mkLit(v, true)) + 1);
     assigns  .push(l_Undef);
     vardata  .push(mkVarData(CRef_Undef, 0));
     //activity .push(0);
@@ -157,8 +157,8 @@ bool Solver::addClause_(vec<Lit>& ps)
 void Solver::attachClause(CRef cr) {
     const Clause& c = *cr;
     assert(c.size() > 1);
-    watches[~c[0]].push(Watcher(cr, c[1]));
-    watches[~c[1]].push(Watcher(cr, c[0]));
+    occurences(~c[0]).push(Watcher(cr, c[1]));
+    occurences(~c[1]).push(Watcher(cr, c[0]));
     if (c.learnt()) learnts_literals += c.size();
     else            clauses_literals += c.size(); }
 
@@ -167,8 +167,8 @@ void Solver::detachClause(CRef cr) {
     const Clause& c = *cr;
     assert(c.size() > 1);
 
-    remove(watches[~c[0]], Watcher(cr, c[1]));
-    remove(watches[~c[1]], Watcher(cr, c[0]));
+    remove(occurences(~c[0]), Watcher(cr, c[1]));
+    remove(occurences(~c[1]), Watcher(cr, c[0]));
 
     if (c.learnt()) learnts_literals -= c.size();
     else            clauses_literals -= c.size(); }
@@ -444,7 +444,7 @@ CRef Solver::propagate()
 
     while (qhead < trail.size()){
         Lit            p   = trail[qhead++];     // 'p' is enqueued fact to propagate.
-        vec<Watcher>&  ws  = watches[p];
+        vec<Watcher>&  ws  = occurences(p);
         Watcher        *i, *j, *end;
         num_props++;
 
@@ -473,7 +473,7 @@ CRef Solver::propagate()
             for (int k = 2; k < c.size(); k++)
                 if (value(c[k]) != l_False){
                     c[1] = c[k]; c[k] = false_lit;
-                    watches[~c[1]].push(w);
+                    occurences(~c[1]).push(w);
                     goto NextClause; }
 
             // Did not find watch -- clause is unit under assignment:

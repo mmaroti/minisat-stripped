@@ -167,19 +167,6 @@ struct Watcher {
     bool operator!=(const Watcher& w) const { return cref != w.cref; }
 };
 
-//=================================================================================================
-// OccLists -- a class for maintaining occurence lists with lazy deletion:
-
-class OccLists
-{
-    vec<vec<Watcher>>  occs;
-
- public:
-    void  init      (const Lit& idx){ occs.growTo(toInt(idx)+1); }
-    vec<Watcher>&  operator[](const Lit& idx){ return occs[toInt(idx)]; }
-    vec<Watcher>&  lookup    (const Lit& idx){ return occs[toInt(idx)]; }
-};
-
 
 //=================================================================================================
 // CMap -- a class for mapping clauses to values:
