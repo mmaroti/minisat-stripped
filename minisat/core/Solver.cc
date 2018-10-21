@@ -146,7 +146,7 @@ bool Solver::addClause_(std::vector<Lit>& ps)
         return ok = (propagate() == CRef_Undef);
     } else {
         CRef cr = new Clause(ps, false);
-        clauses.push(cr);
+        clauses.push_back(cr);
         attachClause(cr);
     }
 
@@ -527,11 +527,11 @@ void Solver::reduceDB()
         else
             learnts[j++] = learnts[i];
     }
-    learnts.shrink(i - j);
+    learnts.resize(j);
 }
 
 
-void Solver::removeSatisfied(vec<CRef>& cs)
+void Solver::removeSatisfied(std::vector<CRef>& cs)
 {
     auto i = cs.begin();
     auto j = cs.begin();
@@ -546,7 +546,7 @@ void Solver::removeSatisfied(vec<CRef>& cs)
         }
         ++i;
     }
-    cs.truncate(j);
+    cs.erase(j, end);
 }
 
 
@@ -627,7 +627,7 @@ lbool Solver::search(int nof_conflicts)
                 uncheckedEnqueue(learnt_clause[0]);
             }else{
                 CRef cr = new Clause(learnt_clause, true);
-                learnts.push(cr);
+                learnts.push_back(cr);
                 attachClause(cr);
                 claBumpActivity(*cr);
                 uncheckedEnqueue(learnt_clause[0], cr);
