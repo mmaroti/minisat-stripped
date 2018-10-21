@@ -37,15 +37,12 @@ namespace Minisat {
 class Solver {
 public:
 
-    // Constructor/Destructor:
-    //
+    // Constructor:
     Solver();
-    virtual ~Solver();
 
     // Problem specification:
     //
     Var     newVar    (bool polarity = true, bool dvar = true); // Add a new variable with parameters specifying variable mode.
-
     bool    addClause (const std::vector<Lit>& ps);             // Add a clause to the solver.
     bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
     bool    addClause (Lit p);                                  // Add a unit clause to the solver.
@@ -58,7 +55,6 @@ public:
     //
     bool    simplify     ();                        // Removes already satisfied clauses.
     bool    solve        (const std::vector<Lit>& assumps); // Search for a model that respects a given set of assumptions.
-    lbool   solveLimited (const std::vector<Lit>& assumps); // Search for a model that respects a given set of assumptions (With resource constraints).
     bool    solve        ();                        // Search without assumptions.
     bool    solve        (Lit p);                   // Search for a model that respects a single assumption.
     bool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
@@ -304,7 +300,6 @@ inline bool     Solver::solve         (Lit p)               { assumptions.clear(
 inline bool     Solver::solve         (Lit p, Lit q)        { assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); return solve_() == l_True; }
 inline bool     Solver::solve         (Lit p, Lit q, Lit r) { assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); assumptions.push_back(r); return solve_() == l_True; }
 inline bool     Solver::solve         (const std::vector<Lit>& assumps){ assumptions = assumps; return solve_() == l_True; }
-inline lbool    Solver::solveLimited  (const std::vector<Lit>& assumps){ assumptions = assumps; return solve_(); }
 inline bool     Solver::okay          ()      const   { return ok; }
 
 

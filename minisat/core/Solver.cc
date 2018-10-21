@@ -26,65 +26,28 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 using namespace Minisat;
 
-//=================================================================================================
-// Options:
+// Constructor:
 
+Solver::Solver()
+    : // User parameters
+      var_decay(0.95), clause_decay(0.999), random_var_freq(0),
+      random_seed(91648253), luby_restart(true), rnd_pol(false),
+      rnd_init_act(false), garbage_frac(0.20), restart_first(100),
+      restart_inc(2),
 
-static const char* _cat = "CORE";
+      // Internal parameters
+      learntsize_factor(1.0 / 3.0), learntsize_inc(1.1),
+      learntsize_adjust_start_confl(100), learntsize_adjust_inc(1.5),
 
-//=================================================================================================
-// Constructor/Destructor:
+      // Statistics
+      solves(0), starts(0), decisions(0), rnd_decisions(0), propagations(0),
+      conflicts(0), dec_vars(0), clauses_literals(0), learnts_literals(0),
+      max_literals(0), tot_literals(0),
 
-
-Solver::Solver() :
-
-    // Parameters (user settable):
-    //
-    var_decay        (0.95) // The variable activity decay factor
-  , clause_decay     (0.999) // The clause activity decay factor
-  , random_var_freq  (0) // The frequency with which the decision heuristic tries to choose a random variable
-  , random_seed      (91648253) // Used by the random variable selection
-  , luby_restart     (true) // Use the Luby restart sequence
-  , rnd_pol          (false)
-  , rnd_init_act     (false) // Randomize the initial activity
-  , garbage_frac     (0.20) // The fraction of wasted memory allowed before a garbage collection is triggered
-  , restart_first    (100) // The base restart interval
-  , restart_inc      (2) // Restart interval increase factor
-
-    // Parameters (the rest):
-    //
-  , learntsize_factor(1.0 / 3.0)
-  , learntsize_inc(1.1)
-
-    // Parameters (experimental):
-    //
-  , learntsize_adjust_start_confl (100)
-  , learntsize_adjust_inc         (1.5)
-
-    // Statistics: (formerly in 'SolverStats')
-    //
-  , solves(0), starts(0), decisions(0), rnd_decisions(0), propagations(0), conflicts(0)
-  , dec_vars(0), clauses_literals(0), learnts_literals(0), max_literals(0), tot_literals(0)
-
-  , ok                 (true)
-  , cla_inc            (1)
-  , var_inc            (1)
-  , watches            ()
-  , qhead              (0)
-  , simpDB_assigns     (-1)
-  , simpDB_props       (0)
-  , order_heap         (VarOrderLt(activity))
-
-    // Resource constraints:
-    //
-  , asynch_interrupt   (false)
-{}
-
-
-Solver::~Solver()
-{
-}
-
+      // State
+      ok(true), cla_inc(1), var_inc(1), watches(), qhead(0), simpDB_assigns(-1),
+      simpDB_props(0), order_heap(VarOrderLt(activity)),
+      asynch_interrupt(false) {}
 
 //=================================================================================================
 // Minor methods:
