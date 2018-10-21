@@ -70,7 +70,7 @@ Solver::Solver() :
   , ok                 (true)
   , cla_inc            (1)
   , var_inc            (1)
-  , watches            (WatcherDeleted(ca))
+  , watches            (WatcherDeleted())
   , qhead              (0)
   , simpDB_assigns     (-1)
   , simpDB_props       (0)
@@ -145,7 +145,7 @@ bool Solver::addClause_(vec<Lit>& ps)
         uncheckedEnqueue(ps[0]);
         return ok = (propagate() == CRef_Undef);
     } else {
-        CRef cr = ca.alloc(ps, false);
+        CRef cr = new Clause(ps, false);
         clauses.push(cr);
         attachClause(cr);
     }
@@ -180,7 +180,7 @@ void Solver::removeClause(CRef cr) {
     // Don't leave pointers to free'd memory!
     if (locked(c)) vardata[var(c[0])].reason = CRef_Undef;
     c.mark(1);
-    ca.free(cr);
+    delete cr;
 }
 
 
@@ -509,8 +509,6 @@ CRef Solver::propagate()
 |________________________________________________________________________________________________@*/
 namespace {
     struct reduceDB_lt {
-        ClauseAllocator& ca;
-        reduceDB_lt(ClauseAllocator& ca_): ca(ca_) {}
         bool operator () (CRef x, CRef y) {
             return x->size() > 2 && (y->size() == 2 || x->activity() < y->activity());
         }
@@ -521,7 +519,7 @@ void Solver::reduceDB()
     int     i, j;
     double  extra_lim = cla_inc / learnts.size();    // Remove any clause below this activity
 
-    sort(learnts, reduceDB_lt(ca));
+    sort(learnts, reduceDB_lt());
     // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
     // and clauses with activity smaller than 'extra_lim':
     for (i = j = 0; i < learnts.size(); i++){
@@ -630,7 +628,7 @@ lbool Solver::search(int nof_conflicts)
             if (learnt_clause.size() == 1){
                 uncheckedEnqueue(learnt_clause[0]);
             }else{
-                CRef cr = ca.alloc(learnt_clause, true);
+                CRef cr = new Clause(learnt_clause, true);
                 learnts.push(cr);
                 attachClause(cr);
                 claBumpActivity(*cr);

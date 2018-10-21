@@ -133,8 +133,7 @@ class Clause {
     float act;  // only for learned clauses
     std::vector<Lit> data;
 
-    friend class ClauseAllocator;
-
+public:
     Clause(const vec<Lit>& ps, bool learnt) : data(ps.size()) {
         header.mark      = 0;
         header.learnt    = learnt;
@@ -146,7 +145,6 @@ class Clause {
             act = 0;
     }
 
-public:
     int          size        ()      const   { return data.size(); }
     bool         learnt      ()      const   { return header.learnt; }
     uint32_t     mark        ()      const   { return header.mark; }
@@ -156,27 +154,6 @@ public:
     Lit          operator [] (int i) const   { return data[i]; }
 
     float&       activity    ()              { assert(header.learnt); return act; }
-};
-
-
-//=================================================================================================
-// ClauseAllocator -- a simple class for allocating memory for clauses:
-
-
-class ClauseAllocator 
-{
-    static int clauseWord32Size(int size, bool learnt){
-        return (sizeof(Clause) + sizeof(Lit) * size) / sizeof(uint32_t); }
- public:
-    template<class Lits>
-    CRef alloc(const Lits& ps, bool learnt = false)
-    {
-        return new Clause(ps, learnt);
-    }
-
-    void free(CRef r) { 
-        delete r;
-    }
 };
 
 

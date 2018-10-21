@@ -138,8 +138,6 @@ protected:
 
     struct WatcherDeleted
     {
-        const ClauseAllocator& ca;
-        WatcherDeleted(const ClauseAllocator& _ca) : ca(_ca) {}
         bool operator()(const Watcher& w) const { return w.cref->mark() == 1; }
     };
 
@@ -172,8 +170,6 @@ protected:
     Heap<VarOrderLt>    order_heap;       // A priority queue of variables ordered with respect to the variable activity.
     double              progress_estimate;// Set by 'search()'.
     bool                remove_satisfied; // Indicates whether possibly inefficient linear scan for satisfied clauses should be performed in 'simplify'.
-
-    ClauseAllocator     ca;
 
     // Temporaries (to reduce allocation overhead). Each variable is prefixed by the method in which it is
     // used, exept 'seen' wich is used in several places.
