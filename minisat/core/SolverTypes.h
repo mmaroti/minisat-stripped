@@ -136,6 +136,9 @@ public:
     activity = learnt ? 0.0f : -1.0f;
   }
 
+  Clause(std::vector<Lit> &lits, bool learnt)
+      : literals(std::move(lits)), activity(learnt ? 0.0f : -1.0f) {}
+
   int size() const { return literals.size(); }
   bool learnt() const { return activity >= 0.0f; }
 

@@ -362,11 +362,11 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
                 if (reason(var(p)) != CRef_Undef && (abstractLevel(var(p)) & abstract_levels) != 0){
                     seen[var(p)] = 1;
                     analyze_stack.push_back(p);
-                    analyze_toclear.push(p);
+                    analyze_toclear.push_back(p);
                 }else{
                     for (int j = top; j < analyze_toclear.size(); j++)
                         seen[var(analyze_toclear[j])] = 0;
-                    analyze_toclear.shrink(analyze_toclear.size() - top);
+                    analyze_toclear.resize(top);
                     return false;
                 }
             }

@@ -164,7 +164,7 @@ protected:
     //
     vec<char>           seen;
     std::vector<Lit>    analyze_stack;
-    vec<Lit>            analyze_toclear;
+    std::vector<Lit>    analyze_toclear;
     vec<Lit>            add_tmp;
 
     double              max_learnts;

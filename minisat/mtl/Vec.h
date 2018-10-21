@@ -26,6 +26,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <type_traits>
 #include <algorithm>
 #include <functional>
+#include <vector>
 
 namespace Minisat {
 
@@ -131,6 +132,12 @@ public:
         std::copy(begin(), end(), copy.begin());
         copy.m_current = copy.m_data + size();
     }
+
+    void copyTo(std::vector<T> &copy) const {
+        copy.resize(size());
+        std::copy(begin(), end(), copy.begin());
+    }
+
     void moveTo(vec<T>& dest) {
         swap(dest);
     }
