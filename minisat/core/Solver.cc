@@ -46,8 +46,6 @@ Solver::Solver() :
   , random_var_freq  (0) // The frequency with which the decision heuristic tries to choose a random variable
   , random_seed      (91648253) // Used by the random variable selection
   , luby_restart     (true) // Use the Luby restart sequence
-  , ccmin_mode       (2) // Controls conflict clause minimization (0=none, 1=basic, 2=deep)
-  , phase_saving     (2) // Controls the level of phase saving (0=none, 1=limited, 2=full)
   , rnd_pol          (false)
   , rnd_init_act     (false) // Randomize the initial activity
   , garbage_frac     (0.20) // The fraction of wasted memory allowed before a garbage collection is triggered
@@ -196,8 +194,7 @@ void Solver::cancelUntil(int level) {
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
-            if (phase_saving > 1 || ((phase_saving == 1) && c > trail_lim.back()))
-                polarity[x] = sign(trail[c]);
+            polarity[x] = sign(trail[c]);
             insertVarOrder(x); }
         qhead = trail_lim[level];
         trail.resize(trail_lim[level]);
@@ -292,31 +289,14 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     //
     int i, j;
     out_learnt.copyTo(analyze_toclear);
-    if (ccmin_mode == 2){
-        uint32_t abstract_level = 0;
-        for (i = 1; i < out_learnt.size(); i++)
-            abstract_level |= abstractLevel(var(out_learnt[i])); // (maintain an abstraction of levels involved in conflict)
 
-        for (i = j = 1; i < out_learnt.size(); i++)
-            if (reason(var(out_learnt[i])) == CRef_Undef || !litRedundant(out_learnt[i], abstract_level))
-                out_learnt[j++] = out_learnt[i];
+    uint32_t abstract_level = 0;
+    for (i = 1; i < out_learnt.size(); i++)
+        abstract_level |= abstractLevel(var(out_learnt[i])); // (maintain an abstraction of levels involved in conflict)
 
-    }else if (ccmin_mode == 1){
-        for (i = j = 1; i < out_learnt.size(); i++){
-            Var x = var(out_learnt[i]);
-
-            if (reason(x) == CRef_Undef)
-                out_learnt[j++] = out_learnt[i];
-            else{
-                Clause& c = *reason(var(out_learnt[i]));
-                for (int k = 1; k < c.size(); k++)
-                    if (!seen[var(c[k])] && level(var(c[k])) > 0){
-                        out_learnt[j++] = out_learnt[i];
-                        break; }
-            }
-        }
-    }else
-        i = j = out_learnt.size();
+    for (i = j = 1; i < out_learnt.size(); i++)
+        if (reason(var(out_learnt[i])) == CRef_Undef || !litRedundant(out_learnt[i], abstract_level))
+            out_learnt[j++] = out_learnt[i];
 
     max_literals += out_learnt.size();
     out_learnt.shrink(i - j);
