@@ -29,7 +29,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "minisat/mtl/Alg.h"
 #include "minisat/mtl/Vec.h"
 #include "minisat/mtl/Map.h"
-#include "minisat/mtl/Alloc.h"
 
 namespace Minisat {
 
@@ -122,7 +121,7 @@ inline lbool toLbool(int   v) { return lbool((uint8_t)v);  }
 // Clause -- a simple class for representing a clause:
 
 class Clause;
-typedef RegionAllocator<uint32_t>::Ref CRef;
+typedef uint32_t *CRef;
 
 class Clause {
     struct {
@@ -170,8 +169,8 @@ public:
 // ClauseAllocator -- a simple class for allocating memory for clauses:
 
 
-const CRef CRef_Undef = RegionAllocator<uint32_t>::Ref_Undef;
-class ClauseAllocator : public RegionAllocator<uint32_t>
+const CRef CRef_Undef = NULL;
+class ClauseAllocator 
 {
     static int clauseWord32Size(int size, bool learnt){
         return (sizeof(Clause) + (sizeof(Lit) * (size + (int)learnt))) / sizeof(uint32_t); }
@@ -182,15 +181,19 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         assert(sizeof(Lit)      == sizeof(uint32_t));
         assert(sizeof(float)    == sizeof(uint32_t));
 
-        CRef cid = RegionAllocator<uint32_t>::alloc(clauseWord32Size(ps.size(), learnt));
+        CRef cid = new uint32_t[clauseWord32Size(ps.size(), learnt)];
         new (lea(cid)) Clause(ps, learnt);
 
         return cid;
     }
 
+    void free(CRef r) { 
+        delete[](r);
+    }
+
     // Deref, Load Effective Address (LEA), Inverse of LEA (AEL):
-    Clause*       lea       (Ref r)       { return (Clause*)RegionAllocator<uint32_t>::lea(r); }
-    const Clause* lea       (Ref r) const { return (Clause*)RegionAllocator<uint32_t>::lea(r); }
+    Clause*       lea       (CRef r)       { return (Clause*)r; }
+    const Clause* lea       (CRef r) const { return (Clause*)r; }
 };
 
 
