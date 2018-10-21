@@ -98,7 +98,6 @@ public:
 
     // Mode of operation:
     //
-    int       verbosity;
     double    var_decay;
     double    clause_decay;
     double    random_var_freq;
@@ -154,8 +153,6 @@ protected:
     int64_t             simpDB_props;     // Remaining number of propagations that must be made before next execution of 'simplify()'.
     std::vector<Lit>    assumptions;      // Current set of assumptions provided to solve by the user.
     Heap<VarOrderLt>    order_heap;       // A priority queue of variables ordered with respect to the variable activity.
-    double              progress_estimate;// Set by 'search()'.
-    bool                remove_satisfied; // Indicates whether possibly inefficient linear scan for satisfied clauses should be performed in 'simplify'.
 
     // Temporaries (to reduce allocation overhead). Each variable is prefixed by the method in which it is
     // used, exept 'seen' wich is used in several places.
@@ -171,8 +168,6 @@ protected:
 
     // Resource contraints:
     //
-    int64_t             conflict_budget;    // -1 means no budget.
-    int64_t             propagation_budget; // -1 means no budget.
     bool                asynch_interrupt;
 
     // Main internal methods:
@@ -216,8 +211,6 @@ protected:
     uint32_t abstractLevel    (Var x) const; // Used to represent an abstraction of sets of decision levels.
     CRef     reason           (Var x) const;
     int      level            (Var x) const;
-    double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
-    bool     withinBudget     ()      const;
 
     // Static helpers:
     //
@@ -300,24 +293,18 @@ inline void     Solver::setDecisionVar(Var v, bool b)
     decision[v] = b;
     insertVarOrder(v);
 }
-inline void     Solver::setConfBudget(int64_t x){ conflict_budget    = conflicts    + x; }
-inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagations + x; }
+
 inline void     Solver::interrupt(){ asynch_interrupt = true; }
 inline void     Solver::clearInterrupt(){ asynch_interrupt = false; }
-inline void     Solver::budgetOff(){ conflict_budget = propagation_budget = -1; }
-inline bool     Solver::withinBudget() const {
-    return !asynch_interrupt &&
-           (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
-           (propagation_budget < 0 || propagations < (uint64_t)propagation_budget); }
 
 // FIXME: after the introduction of asynchronous interrruptions the solve-versions that return a
 // pure bool do not give a safe interface. Either interrupts must be possible to turn off here, or
 // all calls to solve must return an 'lbool'. I'm not yet sure which I prefer.
-inline bool     Solver::solve         ()                    { budgetOff(); assumptions.clear(); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p)               { budgetOff(); assumptions.clear(); assumptions.push_back(p); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); assumptions.push_back(r); return solve_() == l_True; }
-inline bool     Solver::solve         (const std::vector<Lit>& assumps){ budgetOff(); assumptions = assumps; return solve_() == l_True; }
+inline bool     Solver::solve         ()                    { assumptions.clear(); return solve_() == l_True; }
+inline bool     Solver::solve         (Lit p)               { assumptions.clear(); assumptions.push_back(p); return solve_() == l_True; }
+inline bool     Solver::solve         (Lit p, Lit q)        { assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); return solve_() == l_True; }
+inline bool     Solver::solve         (Lit p, Lit q, Lit r) { assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); assumptions.push_back(r); return solve_() == l_True; }
+inline bool     Solver::solve         (const std::vector<Lit>& assumps){ assumptions = assumps; return solve_() == l_True; }
 inline lbool    Solver::solveLimited  (const std::vector<Lit>& assumps){ assumptions = assumps; return solve_(); }
 inline bool     Solver::okay          ()      const   { return ok; }
 

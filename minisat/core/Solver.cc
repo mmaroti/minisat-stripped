@@ -40,8 +40,7 @@ Solver::Solver() :
 
     // Parameters (user settable):
     //
-    verbosity        (0)
-  , var_decay        (0.95) // The variable activity decay factor
+    var_decay        (0.95) // The variable activity decay factor
   , clause_decay     (0.999) // The clause activity decay factor
   , random_var_freq  (0) // The frequency with which the decision heuristic tries to choose a random variable
   , random_seed      (91648253) // Used by the random variable selection
@@ -54,7 +53,8 @@ Solver::Solver() :
 
     // Parameters (the rest):
     //
-  , learntsize_factor((double)1/(double)3), learntsize_inc(1.1)
+  , learntsize_factor(1.0 / 3.0)
+  , learntsize_inc(1.1)
 
     // Parameters (experimental):
     //
@@ -74,13 +74,9 @@ Solver::Solver() :
   , simpDB_assigns     (-1)
   , simpDB_props       (0)
   , order_heap         (VarOrderLt(activity))
-  , progress_estimate  (0)
-  , remove_satisfied   (true)
 
     // Resource constraints:
     //
-  , conflict_budget    (-1)
-  , propagation_budget (-1)
   , asynch_interrupt   (false)
 {}
 
@@ -559,8 +555,7 @@ bool Solver::simplify()
 
     // Remove satisfied clauses:
     removeSatisfied(learnts);
-    if (remove_satisfied)        // Can be turned off.
-        removeSatisfied(clauses);
+    removeSatisfied(clauses);
     rebuildOrderHeap();
 
     simpDB_assigns = nAssigns();
@@ -619,19 +614,12 @@ lbool Solver::search(int nof_conflicts)
                 learntsize_adjust_confl *= learntsize_adjust_inc;
                 learntsize_adjust_cnt    = (int)learntsize_adjust_confl;
                 max_learnts             *= learntsize_inc;
-
-                if (verbosity >= 1)
-                    fprintf(stderr, "| %9d | %7d %8d %8d | %8d %8d %6.0f | %6.3f %% |\n",
-                           (int)conflicts,
-                           (int)dec_vars - (trail_lim.empty() ? (int)trail.size() : trail_lim[0]), nClauses(), (int)clauses_literals,
-                           (int)max_learnts, nLearnts(), (double)learnts_literals/nLearnts(), progressEstimate()*100);
             }
 
         }else{
             // NO CONFLICT
-            if (nof_conflicts >= 0 && (conflictC >= nof_conflicts || !withinBudget())){
+            if (nof_conflicts >= 0 && (conflictC >= nof_conflicts || asynch_interrupt)){
                 // Reached bound on number of conflicts:
-                progress_estimate = progressEstimate();
                 cancelUntil(0);
                 return l_Undef; }
 
@@ -677,20 +665,6 @@ lbool Solver::search(int nof_conflicts)
 }
 
 
-double Solver::progressEstimate() const
-{
-    double  progress = 0;
-    double  F = 1.0 / nVars();
-
-    for (int i = 0; i <= decisionLevel(); i++){
-        int beg = i == 0 ? 0 : trail_lim[i - 1];
-        int end = i == decisionLevel() ? trail.size() : trail_lim[i];
-        progress += pow(F, i) * (end - beg);
-    }
-
-    return progress / nVars();
-}
-
 /*
   Finite subsequences of the Luby-sequence:
 
@@ -733,25 +707,14 @@ lbool Solver::solve_()
     learntsize_adjust_cnt     = (int)learntsize_adjust_confl;
     lbool   status            = l_Undef;
 
-    if (verbosity >= 1){
-        fprintf(stderr, "============================[ Search Statistics ]==============================\n");
-        fprintf(stderr, "| Conflicts |          ORIGINAL         |          LEARNT          | Progress |\n");
-        fprintf(stderr, "|           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |\n");
-        fprintf(stderr, "===============================================================================\n");
-    }
-
     // Search:
     int curr_restarts = 0;
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget()) break;
+        if (asynch_interrupt) break;
         curr_restarts++;
     }
-
-    if (verbosity >= 1)
-        fprintf(stderr, "===============================================================================\n");
-
 
     if (status == l_True){
         // Extend & copy model:
