@@ -128,35 +128,30 @@ class Clause {
     struct {
         unsigned mark      : 2;
         unsigned learnt    : 1;
-        unsigned has_extra : 1;
         unsigned size      : 27; }                            header;
-    union data_union { Lit lit; float act; uint32_t abs; } data[0];
+    union data_union { Lit lit; float act; } data[0];
 
     friend class ClauseAllocator;
 
     // NOTE: This constructor cannot be used directly (doesn't allocate enough memory).
     template<class V>
-    Clause(const V& ps, bool use_extra, bool learnt) {
+    Clause(const V& ps, bool learnt) {
         header.mark      = 0;
         header.learnt    = learnt;
-        header.has_extra = use_extra;
         header.size      = ps.size();
 
         for (int i = 0; i < ps.size(); i++)
             data[i].lit = ps[i];
 
-        if (header.has_extra){
-            if (header.learnt)
-                data[header.size].act = 0;
-        }
+        if (header.learnt)
+            data[header.size].act = 0;
     }
 
 public:
     int          size        ()      const   { return header.size; }
-    void         shrink      (int i)         { assert(i <= size()); if (header.has_extra) data[header.size-i] = data[header.size]; header.size -= i; }
+    void         shrink      (int i)         { assert(i <= size()); if (header.learnt) data[header.size-i] = data[header.size]; header.size -= i; }
     void         pop         ()              { shrink(1); }
     bool         learnt      ()      const   { return header.learnt; }
-    bool         has_extra   ()      const   { return header.has_extra; }
     uint32_t     mark        ()      const   { return header.mark; }
     void         mark        (uint32_t m)    { header.mark = m; }
     const Lit&   last        ()      const   { return data[header.size-1].lit; }
@@ -167,7 +162,7 @@ public:
     Lit          operator [] (int i) const   { return data[i].lit; }
     operator const Lit* (void) const         { return (Lit*)data; }
 
-    float&       activity    ()              { assert(header.has_extra); return data[header.size].act; }
+    float&       activity    ()              { assert(header.learnt); return data[header.size].act; }
 };
 
 
@@ -178,18 +173,17 @@ public:
 const CRef CRef_Undef = RegionAllocator<uint32_t>::Ref_Undef;
 class ClauseAllocator : public RegionAllocator<uint32_t>
 {
-    static int clauseWord32Size(int size, bool has_extra){
-        return (sizeof(Clause) + (sizeof(Lit) * (size + (int)has_extra))) / sizeof(uint32_t); }
+    static int clauseWord32Size(int size, bool learnt){
+        return (sizeof(Clause) + (sizeof(Lit) * (size + (int)learnt))) / sizeof(uint32_t); }
  public:
     template<class Lits>
     CRef alloc(const Lits& ps, bool learnt = false)
     {
         assert(sizeof(Lit)      == sizeof(uint32_t));
         assert(sizeof(float)    == sizeof(uint32_t));
-        bool use_extra = learnt;
 
-        CRef cid = RegionAllocator<uint32_t>::alloc(clauseWord32Size(ps.size(), use_extra));
-        new (lea(cid)) Clause(ps, use_extra, learnt);
+        CRef cid = RegionAllocator<uint32_t>::alloc(clauseWord32Size(ps.size(), learnt));
+        new (lea(cid)) Clause(ps, learnt);
 
         return cid;
     }
@@ -201,7 +195,7 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     void free(CRef cid)
     {
         Clause* c = lea(cid);
-        RegionAllocator<uint32_t>::free(clauseWord32Size(c->size(), c->has_extra()));
+        RegionAllocator<uint32_t>::free(clauseWord32Size(c->size(), c->learnt()));
     }
 };
 
