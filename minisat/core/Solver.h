@@ -39,15 +39,13 @@ public:
     Solver();
 
     // Problem specification:
-    //
-    Var     newVar    (bool polarity = true, bool dvar = true); // Add a new variable with parameters specifying variable mode.
-    bool    addClause (const std::vector<Lit>& ps);             // Add a clause to the solver.
-    bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
-    bool    addClause (Lit p);                                  // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q);                           // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r);                    // Add a ternary clause to the solver.
-    bool    addClause_(std::vector<Lit>& ps);                   // Add a clause to the solver without making superflous internal copy. Will
-                                                                // change the passed vector 'ps'.
+    Var newVar(bool polarity = true, bool decision = true);
+    bool moveClause(std::vector<Lit> &ps);      // empties the source vector
+    bool addClause();                           // make the solver contraditory
+    bool addClause(Lit p);                      // add unit clause
+    bool addClause(Lit p, Lit q);               // add binary clause
+    bool addClause(Lit p, Lit q, Lit r);        // add ternary clause
+    bool addClause(const std::vector<Lit> &ps); // returns if contradictory
 
     // Solving:
     //
@@ -216,8 +214,40 @@ protected:
     inline int irand(int size) { return (int)(drand() * size); }
 };
 
-//=================================================================================================
-// Implementation of inline methods:
+// Problem specification:
+
+inline bool Solver::addClause() {
+  add_tmp.clear();
+  return moveClause(add_tmp);
+}
+
+inline bool Solver::addClause(Lit p) {
+  add_tmp.clear();
+  add_tmp.push_back(p);
+  return moveClause(add_tmp);
+}
+
+inline bool Solver::addClause(Lit p, Lit q) {
+  add_tmp.clear();
+  add_tmp.push_back(p);
+  add_tmp.push_back(q);
+  return moveClause(add_tmp);
+}
+
+inline bool Solver::addClause(Lit p, Lit q, Lit r) {
+  add_tmp.clear();
+  add_tmp.push_back(p);
+  add_tmp.push_back(q);
+  add_tmp.push_back(r);
+  return moveClause(add_tmp);
+}
+
+inline bool Solver::addClause(const std::vector<Lit> &ps) {
+  add_tmp = ps;
+  return moveClause(add_tmp);
+}
+
+// Stuff
 
 inline void Solver::insertVarOrder(Var x) {
   if (!order_heap.inHeap(x) && decision[x])
@@ -245,11 +275,6 @@ inline void Solver::claBumpActivity(Clause &c) {
 
 // NOTE: enqueue does not set the ok flag! (only public methods do)
 inline bool     Solver::enqueue         (Lit p, CRef from)      { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
-inline bool     Solver::addClause       (const std::vector<Lit>& ps) { std::vector<Lit> lits(ps); return addClause_(lits); }
-inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(); return addClause_(add_tmp); }
-inline bool     Solver::addClause       (Lit p)                 { add_tmp.clear(); add_tmp.push_back(p); return addClause_(add_tmp); }
-inline bool     Solver::addClause       (Lit p, Lit q)          { add_tmp.clear(); add_tmp.push_back(p); add_tmp.push_back(q); return addClause_(add_tmp); }
-inline bool     Solver::addClause       (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push_back(p); add_tmp.push_back(q); add_tmp.push_back(r); return addClause_(add_tmp); }
 inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(c[0].var()) != Clause::UNDEF && reason(c[0].var()) == &c; }
 inline void     Solver::newDecisionLevel()                      { trail_lim.push_back(trail.size()); }
 
@@ -288,8 +313,6 @@ inline bool     Solver::solve         (const std::vector<Lit>& assumps){ assumpt
 inline bool     Solver::okay          ()      const   { return ok; }
 
 
-//=================================================================================================
-// Debug etc:
 
 
 //=================================================================================================
