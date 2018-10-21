@@ -163,18 +163,12 @@ void Solver::attachClause(CRef cr) {
     else            clauses_literals += c.size(); }
 
 
-void Solver::detachClause(CRef cr, bool strict) {
+void Solver::detachClause(CRef cr) {
     const Clause& c = *ca.lea(cr);
     assert(c.size() > 1);
 
-    if (strict){
-        remove(watches[~c[0]], Watcher(cr, c[1]));
-        remove(watches[~c[1]], Watcher(cr, c[0]));
-    }else{
-        // Lazy detaching: (NOTE! Must clean all watcher lists before garbage collecting this clause)
-        watches.smudge(~c[0]);
-        watches.smudge(~c[1]);
-    }
+    remove(watches[~c[0]], Watcher(cr, c[1]));
+    remove(watches[~c[1]], Watcher(cr, c[0]));
 
     if (c.learnt()) learnts_literals -= c.size();
     else            clauses_literals -= c.size(); }

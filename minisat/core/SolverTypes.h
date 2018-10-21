@@ -191,12 +191,6 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     // Deref, Load Effective Address (LEA), Inverse of LEA (AEL):
     Clause*       lea       (Ref r)       { return (Clause*)RegionAllocator<uint32_t>::lea(r); }
     const Clause* lea       (Ref r) const { return (Clause*)RegionAllocator<uint32_t>::lea(r); }
-
-    void free(CRef cid)
-    {
-        Clause* c = lea(cid);
-        RegionAllocator<uint32_t>::free(clauseWord32Size(c->size(), c->learnt()));
-    }
 };
 
 
