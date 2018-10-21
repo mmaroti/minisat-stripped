@@ -776,7 +776,7 @@ lbool Solver::solve_()
 
     if (status == l_True){
         // Extend & copy model:
-        model.growTo(nVars());
+        model.resize(nVars());
         for (int i = 0; i < nVars(); i++) model[i] = value(i);
     }else if (status == l_False && conflict.size() == 0)
         ok = false;
