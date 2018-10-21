@@ -14,7 +14,7 @@ int main() {
   Lit table[size][size];
   for (int i = 0; i < size; i++)
     for (int j = 0; j < size; j++)
-      table[i][j] = Lit(solver.newVar(), false);
+      table[i][j] = Lit(solver.newVar());
 
   // reflexive
   for (int i = 0; i < size; i++)

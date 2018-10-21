@@ -216,17 +216,16 @@ protected:
     //
 
     // Returns a random float 0 <= x < 1. Seed must never be 0.
-    static inline double drand(double& seed) {
-        seed *= 1389796;
-        int q = (int)(seed / 2147483647);
-        seed -= (double)q * 2147483647;
-        return seed / 2147483647; }
+    inline double drand() {
+      random_seed *= 1389796;
+      int q = (int)(random_seed / 2147483647);
+      random_seed -= (double)q * 2147483647;
+      return random_seed / 2147483647;
+    }
 
     // Returns a random integer 0 <= x < size. Seed must never be 0.
-    static inline int irand(double& seed, int size) {
-        return (int)(drand(seed) * size); }
+    inline int irand(int size) { return (int)(drand() * size); }
 };
-
 
 //=================================================================================================
 // Implementation of inline methods:

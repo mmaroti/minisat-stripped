@@ -47,7 +47,7 @@ protected:
 public:
   Lit() = default;
   constexpr Lit(const Lit &) = default;
-  constexpr Lit(Var var, bool sign) : x(var + var + (int)sign) {}
+  constexpr Lit(Var var, bool sign = false) : x(var + var + (int)sign) {}
 
   inline bool operator==(Lit p) const { return x == p.x; }
   inline bool operator!=(Lit p) const { return x != p.x; }
@@ -128,6 +128,7 @@ typedef Clause *CRef;
 const CRef CRef_Undef = NULL;
 
 class Clause {
+private:
   std::vector<Lit> literals;
   float activity;
 

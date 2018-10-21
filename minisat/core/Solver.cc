@@ -100,7 +100,7 @@ Var Solver::newVar(bool sign, bool dvar)
     watches.growTo(Lit(v, true).toInt() + 1);
     assigns  .push_back(l_Undef);
     vardata  .push_back(mkVarData(CRef_Undef, 0));
-    activity .push_back(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
+    activity .push_back(rnd_init_act ? drand() * 0.00001 : 0);
     seen     .push_back(0);
     polarity .push_back(sign);
     decision .push_back(0);
@@ -207,8 +207,8 @@ Lit Solver::pickBranchLit()
     Var next = var_Undef;
 
     // Random decision:
-    if (drand(random_seed) < random_var_freq && !order_heap.empty()){
-        next = order_heap[irand(random_seed,order_heap.size())];
+    if (drand() < random_var_freq && !order_heap.empty()){
+        next = order_heap[irand(order_heap.size())];
         if (value(next) == l_Undef && decision[next])
             rnd_decisions++; }
 
@@ -220,7 +220,7 @@ Lit Solver::pickBranchLit()
         }else
             next = order_heap.removeMin();
 
-    return next == var_Undef ? lit_Undef : Lit(next, rnd_pol ? drand(random_seed) < 0.5 : polarity[next]);
+    return next == var_Undef ? lit_Undef : Lit(next, rnd_pol ? drand() < 0.5 : polarity[next]);
 }
 
 
