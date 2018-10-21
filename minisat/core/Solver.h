@@ -21,6 +21,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
+#include <vector>
+
 #include "minisat/mtl/Vec.h"
 #include "minisat/mtl/Heap.h"
 #include "minisat/mtl/Alg.h"
@@ -161,7 +163,7 @@ protected:
     // used, exept 'seen' wich is used in several places.
     //
     vec<char>           seen;
-    vec<Lit>            analyze_stack;
+    std::vector<Lit>    analyze_stack;
     vec<Lit>            analyze_toclear;
     vec<Lit>            add_tmp;
 

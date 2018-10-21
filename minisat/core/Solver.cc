@@ -350,18 +350,18 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 // visiting literals at levels that cannot be removed later.
 bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
 {
-    analyze_stack.clear(); analyze_stack.push(p);
+    analyze_stack.clear(); analyze_stack.push_back(p);
     int top = analyze_toclear.size();
     while (analyze_stack.size() > 0){
-        assert(reason(var(analyze_stack.last())) != CRef_Undef);
-        Clause& c = *reason(var(analyze_stack.last())); analyze_stack.pop();
+        assert(reason(var(analyze_stack.back())) != CRef_Undef);
+        Clause& c = *reason(var(analyze_stack.back())); analyze_stack.pop_back();
 
         for (int i = 1; i < c.size(); i++){
             Lit p  = c[i];
             if (!seen[var(p)] && level(var(p)) > 0){
                 if (reason(var(p)) != CRef_Undef && (abstractLevel(var(p)) & abstract_levels) != 0){
                     seen[var(p)] = 1;
-                    analyze_stack.push(p);
+                    analyze_stack.push_back(p);
                     analyze_toclear.push(p);
                 }else{
                     for (int j = top; j < analyze_toclear.size(); j++)
