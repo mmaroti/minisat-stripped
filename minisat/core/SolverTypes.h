@@ -24,7 +24,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <cassert>
 #include <algorithm>
-#include <unordered_map>
 #include <vector>
 
 #include "minisat/mtl/Alg.h"
@@ -161,36 +160,6 @@ struct Watcher {
     Watcher(CRef cr, Lit p) : cref(cr), blocker(p) {}
     bool operator==(const Watcher& w) const { return cref == w.cref; }
     bool operator!=(const Watcher& w) const { return cref != w.cref; }
-};
-
-
-//=================================================================================================
-// CMap -- a class for mapping clauses to values:
-
-
-template<class T>
-class CMap
-{
-    struct CRefHash {
-        uint32_t operator()(CRef cr) const { return (uint32_t)cr; } };
-
-    std::unordered_map<CRef, T, CRefHash> map;
-
- public:
-    // Size-operations:
-    void     clear       ()                           { map.clear(); }
-    int      size        ()                const      { return map.elems(); }
-
-
-    // Insert/Remove/Test mapping:
-    void     insert      (CRef cr, const T& t){ map.insert(cr, t); }
-    void     growTo      (CRef cr, const T& t){ map.insert(cr, t); } // NOTE: for compatibility
-    void     remove      (CRef cr)            { map.remove(cr); }
-    bool     has         (CRef cr, T& t)      { return map.peek(cr, t); }
-
-    // Vector interface (the clause 'c' must already exist):
-    const T& operator [] (CRef cr) const      { return map[cr]; }
-    T&       operator [] (CRef cr)            { return map[cr]; }
 };
 
 //=================================================================================================
