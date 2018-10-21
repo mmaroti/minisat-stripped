@@ -141,7 +141,7 @@ protected:
     double              cla_inc;          // Amount to bump next clause with.
     std::vector<double> activity;         // A heuristic measurement of the activity of a variable.
     double              var_inc;          // Amount to bump next variable with.
-    vec<vec<Watcher>>   watches;          // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
+    vec<std::vector<Watcher>> watches;    // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
     std::vector<lbool>  assigns;          // The current assignments.
     std::vector<char>   polarity;         // The preferred polarity of each variable.
     std::vector<char>   decision;         // Declares if a variable is eligible for selection in the decision heuristic.
@@ -172,7 +172,7 @@ protected:
 
     // Main internal methods:
     //
-    vec<Watcher>& occurences(Lit p) { return watches[p.toInt()]; }                     // occurence list lookup
+    std::vector<Watcher>& occurences(Lit p) { return watches[p.toInt()]; }             // occurence list lookup
     void     insertVarOrder   (Var x);                                                 // Insert a variable in the decision order priority queue.
     Lit      pickBranchLit    ();                                                      // Return the next decision variable.
     void     newDecisionLevel ();                                                      // Begins a new decision level.

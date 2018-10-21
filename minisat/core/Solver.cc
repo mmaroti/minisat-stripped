@@ -150,8 +150,8 @@ bool Solver::addClause_(std::vector<Lit>& ps)
 void Solver::attachClause(CRef cr) {
     const Clause& c = *cr;
     assert(c.size() > 1);
-    occurences(~c[0]).push(Watcher(cr, c[1]));
-    occurences(~c[1]).push(Watcher(cr, c[0]));
+    occurences(~c[0]).push_back(Watcher(cr, c[1]));
+    occurences(~c[1]).push_back(Watcher(cr, c[0]));
     if (c.learnt()) learnts_literals += c.size();
     else            clauses_literals += c.size(); }
 
@@ -417,11 +417,11 @@ CRef Solver::propagate()
 
     while (qhead < trail.size()){
         Lit            p   = trail[qhead++];     // 'p' is enqueued fact to propagate.
-        vec<Watcher>&  ws  = occurences(p);
-        Watcher        *i, *j, *end;
+        std::vector<Watcher>&  ws  = occurences(p);
+        std::vector<Watcher>::iterator i, j, end;
         num_props++;
 
-        for (i = j = (Watcher*)ws, end = i + ws.size();  i != end;){
+        for (i = j = ws.begin(), end = ws.end();  i != end;){
             // Try to avoid inspecting the clause:
             Lit blocker = i->blocker;
             if (value(blocker) == l_True){
@@ -446,7 +446,7 @@ CRef Solver::propagate()
             for (int k = 2; k < c.size(); k++)
                 if (value(c[k]) != l_False){
                     c[1] = c[k]; c[k] = false_lit;
-                    occurences(~c[1]).push(w);
+                    occurences(~c[1]).push_back(w);
                     goto NextClause; }
 
             // Did not find watch -- clause is unit under assignment:
@@ -462,7 +462,7 @@ CRef Solver::propagate()
 
         NextClause:;
         }
-        ws.truncate(j);
+        ws.erase(j, end);
     }
     propagations += num_props;
     simpDB_props -= num_props;
