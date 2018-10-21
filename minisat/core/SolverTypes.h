@@ -133,8 +133,7 @@ class Clause {
     friend class ClauseAllocator;
 
     // NOTE: This constructor cannot be used directly (doesn't allocate enough memory).
-    template<class V>
-    Clause(const V& ps, bool learnt) {
+    Clause(const vec<Lit>& ps, bool learnt) {
         header.mark      = 0;
         header.learnt    = learnt;
         header.size      = ps.size();
@@ -148,18 +147,12 @@ class Clause {
 
 public:
     int          size        ()      const   { return header.size; }
-    void         shrink      (int i)         { assert(i <= size()); if (header.learnt) data[header.size-i] = data[header.size]; header.size -= i; }
-    void         pop         ()              { shrink(1); }
     bool         learnt      ()      const   { return header.learnt; }
     uint32_t     mark        ()      const   { return header.mark; }
     void         mark        (uint32_t m)    { header.mark = m; }
-    const Lit&   last        ()      const   { return data[header.size-1].lit; }
 
-    // NOTE: somewhat unsafe to change the clause in-place! Must manually call 'calcAbstraction' afterwards for
-    //       subsumption operations to behave correctly.
     Lit&         operator [] (int i)         { return data[i].lit; }
     Lit          operator [] (int i) const   { return data[i].lit; }
-    operator const Lit* (void) const         { return (Lit*)data; }
 
     float&       activity    ()              { assert(header.learnt); return data[header.size].act; }
 };
