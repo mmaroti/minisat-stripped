@@ -25,6 +25,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <cassert>
 #include <algorithm>
 #include <unordered_map>
+#include <vector>
 
 #include "minisat/mtl/Alg.h"
 #include "minisat/mtl/Vec.h"
@@ -122,22 +123,21 @@ inline lbool toLbool(int   v) { return lbool((uint8_t)v);  }
 
 class Clause;
 typedef Clause *CRef;
+const CRef CRef_Undef = NULL;
 
 class Clause {
     struct {
         unsigned mark      : 2;
         unsigned learnt    : 1;
-        unsigned size      : 27; }                            header;
+    } header;
     float act;  // only for learned clauses
-    Lit data[0];
+    std::vector<Lit> data;
 
     friend class ClauseAllocator;
 
-    // NOTE: This constructor cannot be used directly (doesn't allocate enough memory).
-    Clause(const vec<Lit>& ps, bool learnt) {
+    Clause(const vec<Lit>& ps, bool learnt) : data(ps.size()) {
         header.mark      = 0;
         header.learnt    = learnt;
-        header.size      = ps.size();
 
         for (int i = 0; i < ps.size(); i++)
             data[i] = ps[i];
@@ -147,7 +147,7 @@ class Clause {
     }
 
 public:
-    int          size        ()      const   { return header.size; }
+    int          size        ()      const   { return data.size(); }
     bool         learnt      ()      const   { return header.learnt; }
     uint32_t     mark        ()      const   { return header.mark; }
     void         mark        (uint32_t m)    { header.mark = m; }
@@ -163,7 +163,6 @@ public:
 // ClauseAllocator -- a simple class for allocating memory for clauses:
 
 
-const CRef CRef_Undef = NULL;
 class ClauseAllocator 
 {
     static int clauseWord32Size(int size, bool learnt){
@@ -172,17 +171,11 @@ class ClauseAllocator
     template<class Lits>
     CRef alloc(const Lits& ps, bool learnt = false)
     {
-        assert(sizeof(Lit)      == sizeof(uint32_t));
-        assert(sizeof(float)    == sizeof(uint32_t));
-
-        Clause *cid = (Clause*)new uint32_t[clauseWord32Size(ps.size(), learnt)];
-        new (cid) Clause(ps, learnt);
-
-        return cid;
+        return new Clause(ps, learnt);
     }
 
     void free(CRef r) { 
-        delete[]((uint32_t*)r);
+        delete r;
     }
 };
 
