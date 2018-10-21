@@ -145,13 +145,6 @@ void Solver::removeClause(CRef cr) {
     delete cr;
 }
 
-bool Solver::satisfied(const Clause *c) const {
-  for (Lit p : c->literals())
-    if (value(p) == l_True)
-      return true;
-  return false;
-}
-
 // Revert to the state at given level (keeping all assignment at 'level' but not beyond).
 //
 void Solver::cancelUntil(int level) {
@@ -475,21 +468,6 @@ void Solver::reduceDB()
     learnts.resize(j);
 }
 
-void Solver::removeSatisfied(std::vector<Clause*> &cs) {
-  auto i = cs.begin();
-  auto j = cs.begin();
-  while (i != cs.end()) {
-    if (satisfied(*i))
-      removeClause(*i);
-    else {
-      *j = *i;
-      ++j;
-    }
-    ++i;
-  }
-  cs.erase(j, i);
-}
-
 void Solver::rebuildOrderHeap()
 {
     std::vector<Var> vs;
@@ -518,9 +496,11 @@ bool Solver::simplify()
         return true;
 
     // Remove satisfied clauses:
-    removeSatisfied(learnts);
-    removeSatisfied(clauses);
-    rebuildOrderHeap();
+    ClauseSatisfied pred = {assigns};
+    learnts.erase(std::remove_if(learnts.begin(), learnts.end(), pred),
+                  learnts.end());
+    clauses.erase(std::remove_if(clauses.begin(), clauses.end(), pred),
+                  clauses.end());
 
     simpDB_assigns = nAssigns();
     simpDB_props   = clauses_literals + learnts_literals;   // (shouldn't depend on stats really, but it will do for now)

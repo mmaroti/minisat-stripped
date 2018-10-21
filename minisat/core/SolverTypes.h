@@ -127,6 +127,17 @@ public:
   }
 };
 
+struct ClauseSatisfied {
+  std::vector<lbool> &assigns;
+
+  inline bool operator()(CRef c) const {
+    for (Lit p : c->literals())
+      if ((assigns[p.var()] ^ p.sign()) == l_True)
+        return true;
+    return false;
+  }
+};
+
 //============================================================================
 // Watcher:
 
