@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#include "minisat/core/Solver.h"
+#include "Solver.h"
 
 using namespace Minisat;
 

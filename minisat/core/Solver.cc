@@ -21,7 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <math.h>
 #include <algorithm>
 
-#include "minisat/core/Solver.h"
+#include "Solver.h"
 
 using namespace Minisat;
 
@@ -48,29 +48,24 @@ Solver::Solver()
       simpDB_props(0), order_heap(VarOrderLt(activity)),
       asynch_interrupt(false) {}
 
-//=================================================================================================
-// Minor methods:
+// Problem specification:
 
+Lit Solver::addLiteral(bool sign, bool dvar) {
+  int v = nVars();
+  int l = std::max(Lit(v, false).toInt() + 1, Lit(v, true).toInt() + 1);
+  if (watches.size() < l)
+    watches.resize(l);
 
-// Creates a new SAT variable in the solver. If 'decision' is cleared, variable will not be
-// used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
-//
-Lit Solver::addLiteral(bool sign, bool dvar)
-{
-    int v = nVars();
-    int l = std::max(Lit(v, false).toInt() + 1, Lit(v, true).toInt() + 1);
-    if (watches.size() < l)
-        watches.resize(l);
-    assigns  .push_back(l_Undef);
-    vardata  .push_back(mkVarData(Clause::UNDEF, 0));
-    activity .push_back(rnd_init_act ? drand() * 0.00001 : 0);
-    analyze_seen.push_back(false);
-    polarity .push_back(sign);
-    decision .push_back(0);
-    setDecisionVar(v, dvar);
-    return Lit(v, true);
+  assigns.push_back(l_Undef);
+  vardata.push_back(mkVarData(Clause::UNDEF, 0));
+  activity.push_back(rnd_init_act ? drand() * 0.00001 : 0);
+  analyze_seen.push_back(false);
+  polarity.push_back(sign);
+  decision.push_back(0);
+  setDecisionVar(v, dvar);
+
+  return Lit(v, true);
 }
-
 
 bool Solver::giveClause(std::vector<Lit>& ps)
 {
