@@ -59,8 +59,9 @@ Solver::Solver()
 Var Solver::newVar(bool sign, bool dvar)
 {
     int v = nVars();
-    watches.growTo(Lit(v, false).toInt() + 1);
-    watches.growTo(Lit(v, true).toInt() + 1);
+    int l = std::max(Lit(v, false).toInt() + 1, Lit(v, true).toInt() + 1);
+    if (watches.size() < l)
+        watches.resize(l);
     assigns  .push_back(l_Undef);
     vardata  .push_back(mkVarData(Clause::UNDEF, 0));
     activity .push_back(rnd_init_act ? drand() * 0.00001 : 0);
@@ -188,7 +189,7 @@ Lit Solver::pickBranchLit()
 
 /*_________________________________________________________________________________________________
 |
-|  analyze : (confl : Clause*) (out_learnt : vec<Lit>&) (out_btlevel : int&)  ->  [void]
+|  analyze : (confl : Clause*) (out_learnt : std::vector<Lit>&) (out_btlevel : int&)  ->  [void]
 |
 |  Description:
 |    Analyze conflict and produce a reason clause.
