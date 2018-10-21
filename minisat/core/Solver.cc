@@ -72,7 +72,7 @@ Var Solver::newVar(bool sign, bool dvar)
 }
 
 
-bool Solver::moveClause(std::vector<Lit>& ps)
+bool Solver::giveClause(std::vector<Lit>& ps)
 {
     assert(decisionLevel() == 0);
     if (!ok) return false;

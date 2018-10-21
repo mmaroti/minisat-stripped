@@ -40,7 +40,7 @@ public:
 
     // Problem specification:
     Var newVar(bool polarity = true, bool decision = true);
-    bool moveClause(std::vector<Lit> &ps);      // empties the source vector
+    bool giveClause(std::vector<Lit> &ps);      // empties the source vector
     bool addClause();                           // make the solver contraditory
     bool addClause(Lit p);                      // add unit clause
     bool addClause(Lit p, Lit q);               // add binary clause
@@ -149,7 +149,7 @@ protected:
     std::vector<char>   seen;
     std::vector<Lit>    analyze_stack;
     std::vector<Lit>    analyze_toclear;
-    std::vector<Lit>    add_tmp;
+    std::vector<Lit>    addclause_temp;
 
     double              max_learnts;
     double              learntsize_adjust_confl;
@@ -217,34 +217,34 @@ protected:
 // Problem specification:
 
 inline bool Solver::addClause() {
-  add_tmp.clear();
-  return moveClause(add_tmp);
+  addclause_temp.clear();
+  return giveClause(addclause_temp);
 }
 
 inline bool Solver::addClause(Lit p) {
-  add_tmp.clear();
-  add_tmp.push_back(p);
-  return moveClause(add_tmp);
+  addclause_temp.clear();
+  addclause_temp.push_back(p);
+  return giveClause(addclause_temp);
 }
 
 inline bool Solver::addClause(Lit p, Lit q) {
-  add_tmp.clear();
-  add_tmp.push_back(p);
-  add_tmp.push_back(q);
-  return moveClause(add_tmp);
+  addclause_temp.clear();
+  addclause_temp.push_back(p);
+  addclause_temp.push_back(q);
+  return giveClause(addclause_temp);
 }
 
 inline bool Solver::addClause(Lit p, Lit q, Lit r) {
-  add_tmp.clear();
-  add_tmp.push_back(p);
-  add_tmp.push_back(q);
-  add_tmp.push_back(r);
-  return moveClause(add_tmp);
+  addclause_temp.clear();
+  addclause_temp.push_back(p);
+  addclause_temp.push_back(q);
+  addclause_temp.push_back(r);
+  return giveClause(addclause_temp);
 }
 
 inline bool Solver::addClause(const std::vector<Lit> &ps) {
-  add_tmp = ps;
-  return moveClause(add_tmp);
+  addclause_temp = ps;
+  return giveClause(addclause_temp);
 }
 
 // Stuff
