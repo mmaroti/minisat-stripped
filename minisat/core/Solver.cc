@@ -107,7 +107,7 @@ Var Solver::newVar(bool sign, bool dvar)
     assigns  .push(l_Undef);
     vardata  .push(mkVarData(CRef_Undef, 0));
     activity .push_back(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
-    seen     .push(0);
+    seen     .push_back(0);
     polarity .push(sign);
     decision .push();
     trail    .capacity(v+1);

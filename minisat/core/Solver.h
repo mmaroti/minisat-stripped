@@ -162,7 +162,7 @@ protected:
     // Temporaries (to reduce allocation overhead). Each variable is prefixed by the method in which it is
     // used, exept 'seen' wich is used in several places.
     //
-    vec<char>           seen;
+    std::vector<char>   seen;
     std::vector<Lit>    analyze_stack;
     std::vector<Lit>    analyze_toclear;
     std::vector<Lit>    add_tmp;

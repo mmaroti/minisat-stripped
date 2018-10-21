@@ -41,7 +41,7 @@ int main() {
         bool b = solver.modelValue(table[i][j]).isTrue();
         clause[i * size + j] = table[i][j] ^ b;
       }
-    solver.addClause(clause);
+    solver.addClause_(clause);
   }
 
   std::cout << "solutions: " << solutions;
