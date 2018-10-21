@@ -61,7 +61,6 @@ public:
     //
     lbool   value      (Var x) const;       // The current value of a variable.
     lbool   value      (Lit p) const;       // The current value of a literal.
-    lbool   modelValue (Var x) const;       // The value of a variable in the last model. The last call to solve must have been satisfiable.
     lbool   modelValue (Lit p) const;       // The value of a literal in the last model. The last call to solve must have been satisfiable.
     int     nAssigns   ()      const;       // The current number of assigned literals.
     int     nClauses   ()      const;       // The current number of original clauses.
@@ -69,10 +68,9 @@ public:
     int     nVars      ()      const;       // The current number of variables.
     int     nFreeVars  ()      const;
 
-    // Resource contraints:
-    //
-    void    interrupt();          // Trigger a (potentially asynchronous) interruption of the solver.
-    void    clearInterrupt();     // Clear interrupt indicator flag.
+    // Interrupt
+    void interrupt(); // solver will return cleanly
+    void clearInterrupt();
 
     // Extra results: (read-only member variable)
     //
@@ -240,7 +238,12 @@ inline bool Solver::addClause(const std::vector<Lit> &ps) {
   return giveClause(addclause_temp);
 }
 
-// Stuff
+// Interrupt
+
+inline void Solver::interrupt() { asynch_interrupt = true; }
+inline void Solver::clearInterrupt() { asynch_interrupt = false; }
+
+// Activity
 
 inline void Solver::insertVarOrder(Var x) {
   if (!order_heap.inHeap(x) && decision[x])
@@ -275,7 +278,6 @@ inline int      Solver::decisionLevel ()      const   { return trail_lim.size();
 inline unsigned int Solver::abstractLevel (Var x) const { return 1 << (level(x) & (8 * sizeof(unsigned int) - 1)); }
 inline lbool    Solver::value         (Var x) const   { return assigns[x]; }
 inline lbool    Solver::value         (Lit p) const   { return assigns[p.var()] ^ p.sign(); }
-inline lbool    Solver::modelValue    (Var x) const   { return model[x]; }
 inline lbool    Solver::modelValue    (Lit p) const   { return model[p.var()] ^ p.sign(); }
 inline int      Solver::nAssigns      ()      const   { return trail.size(); }
 inline int      Solver::nClauses      ()      const   { return clauses.size(); }
@@ -291,9 +293,6 @@ inline void     Solver::setDecisionVar(Var v, bool b)
     decision[v] = b;
     insertVarOrder(v);
 }
-
-inline void     Solver::interrupt(){ asynch_interrupt = true; }
-inline void     Solver::clearInterrupt(){ asynch_interrupt = false; }
 
 // FIXME: after the introduction of asynchronous interrruptions the solve-versions that return a
 // pure bool do not give a safe interface. Either interrupts must be possible to turn off here, or
