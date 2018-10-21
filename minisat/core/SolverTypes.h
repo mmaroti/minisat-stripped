@@ -37,6 +37,12 @@ namespace Minisat {
 typedef int Var;
 constexpr Var var_Undef(-1);
 
+struct VariableOrder {
+  std::vector<float> &activity;
+
+  bool operator()(Var x, Var y) const { return activity[x] > activity[y]; }
+};
+
 //=============================================================================
 // Literals
 
@@ -69,7 +75,7 @@ constexpr Lit lit_Undef(var_Undef, false);
 constexpr Lit lit_Error(var_Undef, true);
 
 //=============================================================================
-// Lifted booleans:
+// Lifted booleans
 
 class lbool {
   uint8_t value;
@@ -98,7 +104,7 @@ constexpr lbool l_False((uint8_t)1);
 constexpr lbool l_Undef((uint8_t)2); // 3 is also undef
 
 //============================================================================
-// Clause:
+// Clause
 
 class Clause;
 typedef Clause *CRef;
@@ -139,7 +145,7 @@ struct ClauseSatisfied {
 };
 
 //============================================================================
-// Watcher:
+// Watcher
 
 struct Watcher {
   CRef cref;
@@ -149,6 +155,14 @@ struct Watcher {
 
   constexpr bool operator==(const Watcher &w) const { return cref == w.cref; }
   constexpr bool operator!=(const Watcher &w) const { return cref != w.cref; }
+};
+
+//============================================================================
+// VarData
+
+struct VarData {
+  CRef reason;
+  int level;
 };
 
 } // namespace Minisat

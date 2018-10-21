@@ -101,17 +101,6 @@ public:
   long dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
 
 protected:
-  // Helper structures:
-  //
-  struct VarData { CRef reason; int level; };
-  static inline VarData mkVarData(CRef cr, int l){ VarData d = {cr, l}; return d; }
-
-  struct VarOrderLt {
-      const std::vector<float>&  activity;
-      bool operator () (Var x, Var y) const { return activity[x] > activity[y]; }
-      VarOrderLt(const std::vector<float>&  act) : activity(act) { }
-  };
-
   // Solver state:
   //
   bool                ok;               // If FALSE, the constraints are already unsatisfiable. No part of the solver state may be used!
@@ -131,7 +120,7 @@ protected:
   int                 simpDB_assigns;   // Number of top-level assignments since last execution of 'simplify()'.
   long                simpDB_props;     // Remaining number of propagations that must be made before next execution of 'simplify()'.
   std::vector<Lit>    assumptions;      // Current set of assumptions provided to solve by the user.
-  Heap<VarOrderLt>    order_heap;       // A priority queue of variables ordered with respect to the variable activity.
+  Heap<VariableOrder> order_heap;       // A priority queue of variables ordered with respect to the variable activity.
 
   // Temporaries (to reduce allocation overhead)
   std::vector<bool> analyze_seen;

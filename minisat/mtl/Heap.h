@@ -121,7 +121,7 @@ class Heap {
 
 
     // Rebuild the heap from scratch, using the elements in 'ns':
-    void build(std::vector<int>& ns) {
+    void build(const std::vector<int>& ns) {
         heap.clear();
         for (auto& idx : indices) {
             idx = -1;

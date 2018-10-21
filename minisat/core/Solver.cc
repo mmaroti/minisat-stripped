@@ -45,7 +45,7 @@ Solver::Solver()
 
       // State
       ok(true), cla_inc(1), var_inc(1), watches(), qhead(0), simpDB_assigns(-1),
-      simpDB_props(0), order_heap(VarOrderLt(activity)),
+      simpDB_props(0), order_heap({activity}),
       asynch_interrupt(false) {}
 
 // Problem specification:
@@ -57,7 +57,7 @@ Lit Solver::addLiteral(bool sign, bool dvar) {
     watches.resize(l);
 
   assigns.push_back(l_Undef);
-  vardata.push_back(mkVarData(Clause::UNDEF, 0));
+  vardata.push_back(VarData{Clause::UNDEF, 0});
   activity.push_back(rnd_init_act ? drand() * 0.00001 : 0);
   analyze_seen.push_back(false);
   polarity.push_back(sign);
@@ -352,7 +352,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
 {
     assert(value(p) == l_Undef);
     assigns[p.var()] = lbool(!p.sign());
-    vardata[p.var()] = mkVarData(from, decisionLevel());
+    vardata[p.var()] = {from, decisionLevel()};
     trail.push_back(p);
 }
 
