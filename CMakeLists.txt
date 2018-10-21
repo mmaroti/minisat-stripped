@@ -17,7 +17,6 @@ add_library(libminisat STATIC
     # Header files for IDEs
     minisat/core/Solver.h
     minisat/core/SolverTypes.h
-    minisat/mtl/Alg.h
     minisat/mtl/Heap.h
     minisat/mtl/Vec.h
 )

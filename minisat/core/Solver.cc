@@ -21,7 +21,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <math.h>
 #include <algorithm>
 
-#include "minisat/mtl/Sort.h"
 #include "minisat/core/Solver.h"
 
 using namespace Minisat;
@@ -124,8 +123,15 @@ void Solver::detachClause(CRef cr) {
     const Clause& c = *cr;
     assert(c.size() > 1);
 
-    remove(occurences(~c[0]), Watcher(cr, c[1]));
-    remove(occurences(~c[1]), Watcher(cr, c[0]));
+    // remove(occurences(~c[0]), Watcher(cr, c[1]));
+    std::vector<Watcher> &occ0 = occurences(~c[0]);
+    *std::find(occ0.begin(), occ0.end(), Watcher(cr, c[1])) = occ0.back();
+    occ0.pop_back();
+
+    // remove(occurences(~c[1]), Watcher(cr, c[0]));
+    std::vector<Watcher> &occ1 = occurences(~c[1]);
+    *std::find(occ1.begin(), occ1.end(), Watcher(cr, c[0])) = occ1.back();
+    occ1.pop_back();
 
     if (c.learnt()) learnts_literals -= c.size();
     else            clauses_literals -= c.size(); }
