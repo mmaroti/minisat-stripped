@@ -18,7 +18,6 @@ add_library(libminisat STATIC
     minisat/core/Solver.h
     minisat/core/SolverTypes.h
     minisat/mtl/Heap.h
-    minisat/mtl/Vec.h
 )
 
 # Keep the library named as either libminisat.a or minisat.lib
