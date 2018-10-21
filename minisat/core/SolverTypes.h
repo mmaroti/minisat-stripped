@@ -26,7 +26,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <algorithm>
 #include <vector>
 
-#include "minisat/mtl/Alg.h"
 #include "minisat/mtl/Vec.h"
 #include "minisat/mtl/Map.h"
 

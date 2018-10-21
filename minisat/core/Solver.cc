@@ -117,7 +117,7 @@ Var Solver::newVar(bool sign, bool dvar)
 }
 
 
-bool Solver::addClause_(vec<Lit>& ps)
+bool Solver::addClause_(std::vector<Lit>& ps)
 {
     assert(decisionLevel() == 0);
     if (!ok) return false;
@@ -138,7 +138,7 @@ bool Solver::addClause_(vec<Lit>& ps)
         }
         ++i;
     }
-    ps.truncate(j);
+    ps.erase(j, ps.end());
 
     if (ps.empty()) {
         return ok = false;

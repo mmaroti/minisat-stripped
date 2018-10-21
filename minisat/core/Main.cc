@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <vector>
 
 #include "minisat/core/Solver.h"
 
@@ -34,7 +35,7 @@ int main() {
   int solutions = 0;
   while (solver.solve()) {
     solutions += 1;
-    vec<Lit> clause(size * size);
+    std::vector<Lit> clause(size * size);
     for (int i = 0; i < size; i++)
       for (int j = 0; j < size; j++) {
         bool b = solver.modelValue(table[i][j]).isTrue();
