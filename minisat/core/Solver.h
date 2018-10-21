@@ -145,12 +145,12 @@ protected:
     std::vector<double> activity;         // A heuristic measurement of the activity of a variable.
     double              var_inc;          // Amount to bump next variable with.
     vec<vec<Watcher>>   watches;          // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
-    vec<lbool>          assigns;          // The current assignments.
-    vec<char>           polarity;         // The preferred polarity of each variable.
-    vec<char>           decision;         // Declares if a variable is eligible for selection in the decision heuristic.
+    std::vector<lbool>  assigns;          // The current assignments.
+    std::vector<char>   polarity;         // The preferred polarity of each variable.
+    std::vector<char>   decision;         // Declares if a variable is eligible for selection in the decision heuristic.
     vec<Lit>            trail;            // Assignment stack; stores all assigments made in the order they were made.
     vec<int>            trail_lim;        // Separator indices for different decision levels in 'trail'.
-    vec<VarData>        vardata;          // Stores reason and level for each variable.
+    std::vector<VarData> vardata;         // Stores reason and level for each variable.
     int                 qhead;            // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
     int                 simpDB_assigns;   // Number of top-level assignments since last execution of 'simplify()'.
     int64_t             simpDB_props;     // Remaining number of propagations that must be made before next execution of 'simplify()'.

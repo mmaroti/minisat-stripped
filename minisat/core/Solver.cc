@@ -104,12 +104,12 @@ Var Solver::newVar(bool sign, bool dvar)
     int v = nVars();
     watches.growTo(toInt(mkLit(v, false)) + 1);
     watches.growTo(toInt(mkLit(v, true)) + 1);
-    assigns  .push(l_Undef);
-    vardata  .push(mkVarData(CRef_Undef, 0));
+    assigns  .push_back(l_Undef);
+    vardata  .push_back(mkVarData(CRef_Undef, 0));
     activity .push_back(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen     .push_back(0);
-    polarity .push(sign);
-    decision .push();
+    polarity .push_back(sign);
+    decision .push_back(0);
     trail    .capacity(v+1);
     setDecisionVar(v, dvar);
     return v;
