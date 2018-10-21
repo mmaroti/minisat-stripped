@@ -167,59 +167,17 @@ struct Watcher {
     bool operator!=(const Watcher& w) const { return cref != w.cref; }
 };
 
-struct WatcherDeleted
-{
-    bool operator()(const Watcher& w) const { return w.cref->mark() == 1; }
-};
-
-
 //=================================================================================================
 // OccLists -- a class for maintaining occurence lists with lazy deletion:
 
 class OccLists
 {
     vec<vec<Watcher>>  occs;
-    vec<char> dirty;
-    vec<Lit>  dirties;
-    WatcherDeleted   deleted;
 
  public:
-    void  init      (const Lit& idx){ occs.growTo(toInt(idx)+1); dirty.growTo(toInt(idx)+1, 0); }
+    void  init      (const Lit& idx){ occs.growTo(toInt(idx)+1); }
     vec<Watcher>&  operator[](const Lit& idx){ return occs[toInt(idx)]; }
-    vec<Watcher>&  lookup    (const Lit& idx){ if (dirty[toInt(idx)]) clean(idx); return occs[toInt(idx)]; }
-
-    void  cleanAll  () {
-        for (auto const& d : dirties) {
-            if (dirty[toInt(d)]) {
-                clean(d);
-            }
-        }
-        dirties.clear();
-    }
-
-    void  clean     (const Lit& idx) 
-    {
-        vec<Watcher>& vec = occs[toInt(idx)];
-        auto j = std::remove_if(vec.begin(), vec.end(), [&] (typename vec<Watcher>::value_type const& elem) {
-                return deleted(elem);
-            }
-        );
-        vec.truncate(j);
-        dirty[toInt(idx)] = 0;
-    }
-
-    void  smudge    (const Lit& idx){
-        if (dirty[toInt(idx)] == 0){
-            dirty[toInt(idx)] = 1;
-            dirties.push(idx);
-        }
-    }
-
-    void  clear(bool free = true){
-        occs   .clear(free);
-        dirty  .clear(free);
-        dirties.clear(free);
-    }
+    vec<Watcher>&  lookup    (const Lit& idx){ return occs[toInt(idx)]; }
 };
 
 
