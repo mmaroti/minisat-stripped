@@ -57,8 +57,8 @@ public:
     // Solving:
     //
     bool    simplify     ();                        // Removes already satisfied clauses.
-    bool    solve        (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions.
-    lbool   solveLimited (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions (With resource constraints).
+    bool    solve        (const std::vector<Lit>& assumps); // Search for a model that respects a given set of assumptions.
+    lbool   solveLimited (const std::vector<Lit>& assumps); // Search for a model that respects a given set of assumptions (With resource constraints).
     bool    solve        ();                        // Search without assumptions.
     bool    solve        (Lit p);                   // Search for a model that respects a single assumption.
     bool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
@@ -154,7 +154,7 @@ protected:
     int                 qhead;            // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
     int                 simpDB_assigns;   // Number of top-level assignments since last execution of 'simplify()'.
     int64_t             simpDB_props;     // Remaining number of propagations that must be made before next execution of 'simplify()'.
-    vec<Lit>            assumptions;      // Current set of assumptions provided to solve by the user.
+    std::vector<Lit>    assumptions;      // Current set of assumptions provided to solve by the user.
     Heap<VarOrderLt>    order_heap;       // A priority queue of variables ordered with respect to the variable activity.
     double              progress_estimate;// Set by 'search()'.
     bool                remove_satisfied; // Indicates whether possibly inefficient linear scan for satisfied clauses should be performed in 'simplify'.
@@ -316,11 +316,11 @@ inline bool     Solver::withinBudget() const {
 // pure bool do not give a safe interface. Either interrupts must be possible to turn off here, or
 // all calls to solve must return an 'lbool'. I'm not yet sure which I prefer.
 inline bool     Solver::solve         ()                    { budgetOff(); assumptions.clear(); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p)               { budgetOff(); assumptions.clear(); assumptions.push(p); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.clear(); assumptions.push(p); assumptions.push(q); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.clear(); assumptions.push(p); assumptions.push(q); assumptions.push(r); return solve_() == l_True; }
-inline bool     Solver::solve         (const vec<Lit>& assumps){ budgetOff(); assumps.copyTo(assumptions); return solve_() == l_True; }
-inline lbool    Solver::solveLimited  (const vec<Lit>& assumps){ assumps.copyTo(assumptions); return solve_(); }
+inline bool     Solver::solve         (Lit p)               { budgetOff(); assumptions.clear(); assumptions.push_back(p); return solve_() == l_True; }
+inline bool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); return solve_() == l_True; }
+inline bool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.clear(); assumptions.push_back(p); assumptions.push_back(q); assumptions.push_back(r); return solve_() == l_True; }
+inline bool     Solver::solve         (const std::vector<Lit>& assumps){ budgetOff(); assumptions = assumps; return solve_() == l_True; }
+inline lbool    Solver::solveLimited  (const std::vector<Lit>& assumps){ assumptions = assumps; return solve_(); }
 inline bool     Solver::okay          ()      const   { return ok; }
 
 
