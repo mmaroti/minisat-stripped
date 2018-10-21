@@ -127,7 +127,6 @@ const CRef CRef_Undef = NULL;
 
 class Clause {
     struct {
-        unsigned mark      : 2;
         unsigned learnt    : 1;
     } header;
     float act;  // only for learned clauses
@@ -135,7 +134,6 @@ class Clause {
 
 public:
     Clause(const vec<Lit>& ps, bool learnt) : data(ps.size()) {
-        header.mark      = 0;
         header.learnt    = learnt;
 
         for (int i = 0; i < ps.size(); i++)
@@ -147,8 +145,6 @@ public:
 
     int          size        ()      const   { return data.size(); }
     bool         learnt      ()      const   { return header.learnt; }
-    uint32_t     mark        ()      const   { return header.mark; }
-    void         mark        (uint32_t m)    { header.mark = m; }
 
     Lit&         operator [] (int i)         { return data[i]; }
     Lit          operator [] (int i) const   { return data[i]; }
