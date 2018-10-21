@@ -70,7 +70,7 @@ Solver::Solver() :
   , ok                 (true)
   , cla_inc            (1)
   , var_inc            (1)
-  , watches            (WatcherDeleted())
+  , watches            ()
   , qhead              (0)
   , simpDB_assigns     (-1)
   , simpDB_props       (0)

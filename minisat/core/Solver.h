@@ -128,19 +128,6 @@ protected:
     struct VarData { CRef reason; int level; };
     static inline VarData mkVarData(CRef cr, int l){ VarData d = {cr, l}; return d; }
 
-    struct Watcher {
-        CRef cref;
-        Lit  blocker;
-        Watcher(CRef cr, Lit p) : cref(cr), blocker(p) {}
-        bool operator==(const Watcher& w) const { return cref == w.cref; }
-        bool operator!=(const Watcher& w) const { return cref != w.cref; }
-    };
-
-    struct WatcherDeleted
-    {
-        bool operator()(const Watcher& w) const { return w.cref->mark() == 1; }
-    };
-
     struct VarOrderLt {
         const vec<double>&  activity;
         bool operator () (Var x, Var y) const { return activity[x] > activity[y]; }
@@ -155,8 +142,7 @@ protected:
     double              cla_inc;          // Amount to bump next clause with.
     vec<double>         activity;         // A heuristic measurement of the activity of a variable.
     double              var_inc;          // Amount to bump next variable with.
-    OccLists<Lit, vec<Watcher>, WatcherDeleted>
-                        watches;          // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
+    OccLists            watches;          // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
     vec<lbool>          assigns;          // The current assignments.
     vec<char>           polarity;         // The preferred polarity of each variable.
     vec<char>           decision;         // Declares if a variable is eligible for selection in the decision heuristic.
