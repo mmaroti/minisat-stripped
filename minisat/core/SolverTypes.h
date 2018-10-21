@@ -80,11 +80,11 @@ public:
   constexpr lbool() : value(0) {}
   explicit constexpr lbool(bool x) : value(!x) {}
 
-  bool operator==(lbool b) const {
+  constexpr bool operator==(lbool b) const {
     return (value & b.value & 2) != 0 || value == b.value;
   }
 
-  bool operator!=(lbool b) const { return !(*this == b); }
+  constexpr bool operator!=(lbool b) const { return !(*this == b); }
   constexpr lbool operator^(bool b) const {
     return lbool((uint8_t)(value ^ (uint8_t)b));
   }
@@ -114,9 +114,9 @@ public:
   Clause(std::vector<Lit> &lits, bool learnt)
       : lits(std::move(lits)), act(learnt ? 0.0f : -1.0f) {}
 
-  int size() const { return lits.size(); }
-  bool learnt() const { return act >= 0.0f; }
-  const std::vector<Lit> &literals() const { return lits; }
+  constexpr int size() const { return lits.size(); }
+  constexpr bool learnt() const { return act >= 0.0f; }
+  constexpr const std::vector<Lit> &literals() const { return lits; }
 
   Lit &operator[](int i) { return lits[i]; }
   Lit operator[](int i) const { return lits[i]; }
@@ -134,10 +134,10 @@ struct Watcher {
   CRef cref;
   Lit blocker;
 
-  Watcher(CRef cr, Lit p) : cref(cr), blocker(p) {}
+  constexpr Watcher(CRef cr, Lit p) : cref(cr), blocker(p) {}
 
-  bool operator==(const Watcher &w) const { return cref == w.cref; }
-  bool operator!=(const Watcher &w) const { return cref != w.cref; }
+  constexpr bool operator==(const Watcher &w) const { return cref == w.cref; }
+  constexpr bool operator!=(const Watcher &w) const { return cref != w.cref; }
 };
 
 } // namespace Minisat
