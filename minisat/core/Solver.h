@@ -172,7 +172,7 @@ protected:
 
     // Main internal methods:
     //
-    vec<Watcher>& occurences(Lit p) { return watches[toInt(p)]; }                      // occurence list lookup
+    vec<Watcher>& occurences(Lit p) { return watches[p.toInt()]; }                     // occurence list lookup
     void     insertVarOrder   (Var x);                                                 // Insert a variable in the decision order priority queue.
     Lit      pickBranchLit    ();                                                      // Return the next decision variable.
     void     newDecisionLevel ();                                                      // Begins a new decision level.
@@ -270,15 +270,15 @@ inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(
 inline bool     Solver::addClause       (Lit p)                 { add_tmp.clear(); add_tmp.push_back(p); return addClause_(add_tmp); }
 inline bool     Solver::addClause       (Lit p, Lit q)          { add_tmp.clear(); add_tmp.push_back(p); add_tmp.push_back(q); return addClause_(add_tmp); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push_back(p); add_tmp.push_back(q); add_tmp.push_back(r); return addClause_(add_tmp); }
-inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef && reason(var(c[0])) == &c; }
+inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(c[0].var()) != CRef_Undef && reason(c[0].var()) == &c; }
 inline void     Solver::newDecisionLevel()                      { trail_lim.push_back(trail.size()); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }
 inline lbool    Solver::value         (Var x) const   { return assigns[x]; }
-inline lbool    Solver::value         (Lit p) const   { return assigns[var(p)] ^ sign(p); }
+inline lbool    Solver::value         (Lit p) const   { return assigns[p.var()] ^ p.sign(); }
 inline lbool    Solver::modelValue    (Var x) const   { return model[x]; }
-inline lbool    Solver::modelValue    (Lit p) const   { return model[var(p)] ^ sign(p); }
+inline lbool    Solver::modelValue    (Lit p) const   { return model[p.var()] ^ p.sign(); }
 inline int      Solver::nAssigns      ()      const   { return trail.size(); }
 inline int      Solver::nClauses      ()      const   { return clauses.size(); }
 inline int      Solver::nLearnts      ()      const   { return learnts.size(); }

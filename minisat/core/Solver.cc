@@ -96,8 +96,8 @@ Solver::~Solver()
 Var Solver::newVar(bool sign, bool dvar)
 {
     int v = nVars();
-    watches.growTo(toInt(mkLit(v, false)) + 1);
-    watches.growTo(toInt(mkLit(v, true)) + 1);
+    watches.growTo(Lit(v, false).toInt() + 1);
+    watches.growTo(Lit(v, true).toInt() + 1);
     assigns  .push_back(l_Undef);
     vardata  .push_back(mkVarData(CRef_Undef, 0));
     activity .push_back(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
@@ -171,7 +171,7 @@ void Solver::removeClause(CRef cr) {
     Clause& c = *cr;
     detachClause(cr);
     // Don't leave pointers to free'd memory!
-    if (locked(c)) vardata[var(c[0])].reason = CRef_Undef;
+    if (locked(c)) vardata[c[0].var()].reason = CRef_Undef;
     delete cr;
 }
 
@@ -188,9 +188,9 @@ bool Solver::satisfied(const Clause& c) const {
 void Solver::cancelUntil(int level) {
     if (decisionLevel() > level){
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
-            Var      x  = var(trail[c]);
+            Var      x  = trail[c].var();
             assigns [x] = l_Undef;
-            polarity[x] = sign(trail[c]);
+            polarity[x] = trail[c].sign();
             insertVarOrder(x); }
         qhead = trail_lim[level];
         trail.resize(trail_lim[level]);
@@ -220,7 +220,7 @@ Lit Solver::pickBranchLit()
         }else
             next = order_heap.removeMin();
 
-    return next == var_Undef ? lit_Undef : mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : polarity[next]);
+    return next == var_Undef ? lit_Undef : Lit(next, rnd_pol ? drand(random_seed) < 0.5 : polarity[next]);
 }
 
 
@@ -261,10 +261,10 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++){
             Lit q = c[j];
 
-            if (!seen[var(q)] && level(var(q)) > 0){
-                varBumpActivity(var(q));
-                seen[var(q)] = 1;
-                if (level(var(q)) >= decisionLevel())
+            if (!seen[q.var()] && level(q.var()) > 0){
+                varBumpActivity(q.var());
+                seen[q.var()] = 1;
+                if (level(q.var()) >= decisionLevel())
                     pathC++;
                 else
                     out_learnt.push(q);
@@ -272,10 +272,10 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         }
 
         // Select next clause to look at:
-        while (!seen[var(trail[index--])]);
+        while (!seen[trail[index--].var()]);
         p     = trail[index+1];
-        confl = reason(var(p));
-        seen[var(p)] = 0;
+        confl = reason(p.var());
+        seen[p.var()] = 0;
         pathC--;
 
     }while (pathC > 0);
@@ -288,10 +288,10 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
     uint32_t abstract_level = 0;
     for (i = 1; i < out_learnt.size(); i++)
-        abstract_level |= abstractLevel(var(out_learnt[i])); // (maintain an abstraction of levels involved in conflict)
+        abstract_level |= abstractLevel(out_learnt[i].var()); // (maintain an abstraction of levels involved in conflict)
 
     for (i = j = 1; i < out_learnt.size(); i++)
-        if (reason(var(out_learnt[i])) == CRef_Undef || !litRedundant(out_learnt[i], abstract_level))
+        if (reason(out_learnt[i].var()) == CRef_Undef || !litRedundant(out_learnt[i], abstract_level))
             out_learnt[j++] = out_learnt[i];
 
     max_literals += out_learnt.size();
@@ -306,17 +306,17 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         int max_i = 1;
         // Find the first literal assigned at the next-highest level:
         for (int i = 2; i < out_learnt.size(); i++)
-            if (level(var(out_learnt[i])) > level(var(out_learnt[max_i])))
+            if (level(out_learnt[i].var()) > level(out_learnt[max_i].var()))
                 max_i = i;
         // Swap-in this literal at index 1:
         Lit p             = out_learnt[max_i];
         out_learnt[max_i] = out_learnt[1];
         out_learnt[1]     = p;
-        out_btlevel       = level(var(p));
+        out_btlevel       = level(p.var());
     }
 
     for (auto const& elem : analyze_toclear) {
-        seen[var(elem)] = 0;
+        seen[elem.var()] = 0;
     }
 }
 
@@ -328,19 +328,19 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     analyze_stack.clear(); analyze_stack.push_back(p);
     int top = analyze_toclear.size();
     while (analyze_stack.size() > 0){
-        assert(reason(var(analyze_stack.back())) != CRef_Undef);
-        Clause& c = *reason(var(analyze_stack.back())); analyze_stack.pop_back();
+        assert(reason(analyze_stack.back().var()) != CRef_Undef);
+        Clause& c = *reason(analyze_stack.back().var()); analyze_stack.pop_back();
 
         for (int i = 1; i < c.size(); i++){
             Lit p  = c[i];
-            if (!seen[var(p)] && level(var(p)) > 0){
-                if (reason(var(p)) != CRef_Undef && (abstractLevel(var(p)) & abstract_levels) != 0){
-                    seen[var(p)] = 1;
+            if (!seen[p.var()] && level(p.var()) > 0){
+                if (reason(p.var()) != CRef_Undef && (abstractLevel(p.var()) & abstract_levels) != 0){
+                    seen[p.var()] = 1;
                     analyze_stack.push_back(p);
                     analyze_toclear.push_back(p);
                 }else{
                     for (int j = top; j < analyze_toclear.size(); j++)
-                        seen[var(analyze_toclear[j])] = 0;
+                        seen[analyze_toclear[j].var()] = 0;
                     analyze_toclear.resize(top);
                     return false;
                 }
@@ -369,10 +369,10 @@ void Solver::analyzeFinal(Lit p, std::vector<Lit>& out_conflict)
     if (decisionLevel() == 0)
         return;
 
-    seen[var(p)] = 1;
+    seen[p.var()] = 1;
 
     for (int i = trail.size()-1; i >= trail_lim[0]; i--){
-        Var x = var(trail[i]);
+        Var x = trail[i].var();
         if (seen[x]){
             if (reason(x) == CRef_Undef){
                 assert(level(x) > 0);
@@ -380,22 +380,22 @@ void Solver::analyzeFinal(Lit p, std::vector<Lit>& out_conflict)
             }else{
                 Clause& c = *reason(x);
                 for (int j = 1; j < c.size(); j++)
-                    if (level(var(c[j])) > 0)
-                        seen[var(c[j])] = 1;
+                    if (level(c[j].var()) > 0)
+                        seen[c[j].var()] = 1;
             }
             seen[x] = 0;
         }
     }
 
-    seen[var(p)] = 0;
+    seen[p.var()] = 0;
 }
 
 
 void Solver::uncheckedEnqueue(Lit p, CRef from)
 {
     assert(value(p) == l_Undef);
-    assigns[var(p)] = lbool(!sign(p));
-    vardata[var(p)] = mkVarData(from, decisionLevel());
+    assigns[p.var()] = lbool(!p.sign());
+    vardata[p.var()] = mkVarData(from, decisionLevel());
     trail.push_back(p);
 }
 
