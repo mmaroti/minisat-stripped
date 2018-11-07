@@ -35,7 +35,7 @@ public:
   Solver();
 
   // Problem specification:
-  Lit addLiteral(bool polarity = true, bool decision = true);
+  Lit addLiteral(bool decision = true);
   bool takeClause(std::vector<Lit> &ps);      // empties the source vector
   bool addClause();                           // make the solver contraditory
   bool addClause(Lit p);                      // add unit clause
@@ -56,7 +56,6 @@ public:
 
   // Variable mode:
   //
-  void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
   void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
 
   // Read state:
@@ -83,7 +82,6 @@ public:
   double    random_var_freq;
   double    random_seed;
   bool      luby_restart;
-  bool      rnd_pol;            // Use random polarities for branching heuristics.
   bool      rnd_init_act;       // Initialize variable activities with a small random value.
   double    garbage_frac;       // The fraction of wasted memory allowed before a garbage collection is triggered.
 
@@ -111,7 +109,6 @@ protected:
   double              var_inc;          // Amount to bump next variable with.
   std::vector<std::vector<Watcher>> watches; // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
   std::vector<lbool>  assigns;          // The current assignments.
-  std::vector<bool>   polarity;         // The preferred polarity of each variable.
   std::vector<char>   decision;         // Declares if a variable is eligible for selection in the decision heuristic.
   std::vector<Lit>    trail;            // Assignment stack; stores all assigments made in the order they were made.
   std::vector<int>    trail_lim;        // Separator indices for different decision levels in 'trail'.
@@ -302,7 +299,6 @@ inline int      Solver::nClauses      ()      const   { return clauses.size(); }
 inline int      Solver::nLearnts      ()      const   { return learnts.size(); }
 inline int      Solver::nVars         ()      const   { return vardata.size(); }
 inline int      Solver::nFreeVars     ()      const   { return (int)dec_vars - (trail_lim.size() == 0 ? trail.size() : trail_lim[0]); }
-inline void     Solver::setPolarity   (Var v, bool b) { polarity[v] = b; }
 inline void     Solver::setDecisionVar(Var v, bool b)
 {
     if      ( b && !decision[v]) dec_vars++;

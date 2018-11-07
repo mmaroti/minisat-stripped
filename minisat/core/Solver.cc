@@ -30,7 +30,7 @@ using namespace Minisat;
 Solver::Solver()
     : // User parameters
       var_decay(0.95), clause_decay(0.999), random_var_freq(0),
-      random_seed(91648253), luby_restart(true), rnd_pol(false),
+      random_seed(91648253), luby_restart(true),
       rnd_init_act(false), garbage_frac(0.20), restart_first(100),
       restart_inc(2),
 
@@ -49,7 +49,7 @@ Solver::Solver()
 
 // Problem specification:
 
-Lit Solver::addLiteral(bool sign, bool dvar) {
+Lit Solver::addLiteral(bool dvar) {
   int v = nVars();
   int l = std::max(Lit(v, false).toInt() + 1, Lit(v, true).toInt() + 1);
   if (watches.size() < l)
@@ -59,7 +59,6 @@ Lit Solver::addLiteral(bool sign, bool dvar) {
   vardata.push_back({Clause::UNDEF, 0});
   activity.push_back(rnd_init_act ? drand() * 0.00001 : 0.0);
   analyze_seen.push_back(false);
-  polarity.push_back(sign);
   decision.push_back(0);
   setDecisionVar(v, dvar);
 
@@ -143,7 +142,6 @@ void Solver::cancelUntil(int level) {
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = trail[c].var();
             assigns [x] = l_Undef;
-            polarity[x] = trail[c].sign();
             insertVarOrder(x); }
         qhead = trail_lim[level];
         trail.resize(trail_lim[level]);
@@ -173,7 +171,7 @@ Lit Solver::pickBranchLit()
         }else
             next = order_heap.removeMin();
 
-    return next == var_Undef ? lit_Undef : Lit(next, rnd_pol ? drand() < 0.5 : polarity[next]);
+    return next == var_Undef ? lit_Undef : Lit(next, drand() < 0.5);
 }
 
 
