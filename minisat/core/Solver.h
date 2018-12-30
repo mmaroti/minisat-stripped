@@ -45,11 +45,7 @@ public:
 
   // Solving:
   bool simplify();                 // removes already satisfied clauses
-  bool solve();                    // search without assumptions
-  bool solve(Lit p);               // use a single assumption
-  bool solve(Lit p, Lit q);        // use two assumptions
-  bool solve(Lit p, Lit q, Lit r); // use tree assumptions
-  bool solve(const std::vector<Lit> &assumps);
+  bool solve();                    // search
   bool okay() const; // check if solver not in contradictory
   void interrupt();  // ask solver to return cleanly
   void clearInterrupt();
@@ -68,8 +64,6 @@ public:
   // Extra results: (read-only member variable)
   //
   std::vector<lbool> model;     // If problem is satisfiable, this vector contains the model (if any).
-  std::vector<Lit>   conflict;  // If problem is unsatisfiable (possibly under assumptions),
-                                // this vector represent the final conflict clause expressed in the assumptions.
 
   // Mode of operation:
   //
@@ -110,7 +104,6 @@ protected:
   int                 qhead;            // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
   int                 simpDB_assigns;   // Number of top-level assignments since last execution of 'simplify()'.
   long                simpDB_props;     // Remaining number of propagations that must be made before next execution of 'simplify()'.
-  std::vector<Lit>    assumptions;      // Current set of assumptions provided to solve by the user.
   Heap<VariableOrder> order_heap;       // A priority queue of variables ordered with respect to the variable activity.
 
   // Temporaries (to reduce allocation overhead)
@@ -141,7 +134,7 @@ protected:
   void     analyzeFinal     (Lit p, std::vector<Lit>& out_conflict);                 // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
   bool     litRedundant     (Lit p, unsigned int abstract_levels);                            // (helper method for 'analyze()')
   lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
-  lbool    solve_           ();                                                      // Main solve method (assumptions given in 'assumptions').
+  lbool    solve_           ();                                                      // Main solve method
   void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
   void     rebuildOrderHeap ();
 
@@ -216,33 +209,6 @@ inline bool Solver::addClause(const std::vector<Lit> &ps) {
 // Solving:
 
 inline bool Solver::solve() {
-  assumptions.clear();
-  return solve_() == l_True;
-}
-
-inline bool Solver::solve(Lit p) {
-  assumptions.clear();
-  assumptions.push_back(p);
-  return solve_() == l_True;
-}
-
-inline bool Solver::solve(Lit p, Lit q) {
-  assumptions.clear();
-  assumptions.push_back(p);
-  assumptions.push_back(q);
-  return solve_() == l_True;
-}
-
-inline bool Solver::solve(Lit p, Lit q, Lit r) {
-  assumptions.clear();
-  assumptions.push_back(p);
-  assumptions.push_back(q);
-  assumptions.push_back(r);
-  return solve_() == l_True;
-}
-
-inline bool Solver::solve(const std::vector<Lit> &assumps) {
-  assumptions = assumps;
   return solve_() == l_True;
 }
 

@@ -564,31 +564,13 @@ lbool Solver::search(int nof_conflicts)
                 // Reduce the set of learnt clauses:
                 reduceDB();
 
-            Lit next = lit_Undef;
-            while (decisionLevel() < assumptions.size()){
-                // Perform user provided assumption:
-                Lit p = assumptions[decisionLevel()];
-                if (value(p) == l_True){
-                    // Dummy decision level:
-                    newDecisionLevel();
-                }else if (value(p) == l_False){
-                    analyzeFinal(~p, conflict);
-                    return l_False;
-                }else{
-                    next = p;
-                    break;
-                }
-            }
+            // New variable decision:
+            decisions++;
+            Lit next = pickBranchLit();
 
-            if (next == lit_Undef){
-                // New variable decision:
-                decisions++;
-                next = pickBranchLit();
-
-                if (next == lit_Undef)
-                    // Model found:
-                    return l_True;
-            }
+            if (next == lit_Undef)
+                // Model found:
+                return l_True;
 
             // Increase decision level and enqueue 'next'
             newDecisionLevel();
@@ -626,11 +608,9 @@ static double luby(double y, int x){
     return pow(y, seq);
 }
 
-// NOTE: assumptions passed in member-variable 'assumptions'.
 lbool Solver::solve_()
 {
     model.clear();
-    conflict.clear();
     if (!ok) return l_False;
 
     solves++;
@@ -653,7 +633,7 @@ lbool Solver::solve_()
         // Extend & copy model:
         model.resize(nVars());
         for (int i = 0; i < nVars(); i++) model[i] = value(i);
-    }else if (status == l_False && conflict.size() == 0)
+    }else if (status == l_False)
         ok = false;
 
     cancelUntil(0);
