@@ -47,8 +47,6 @@ public:
   bool simplify();                 // removes already satisfied clauses
   bool solve();                    // search
   bool okay() const; // check if solver not in contradictory
-  void interrupt();  // ask solver to return cleanly
-  void clearInterrupt();
 
   // Read state:
   //
@@ -130,7 +128,6 @@ protected:
   lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
   lbool    solve_           ();                                                      // Main solve method
   void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
-  void     rebuildOrderHeap ();
 
   // Maintaining Variable/Clause activity:
   void varDecayActivity() { var_inc *= (1.0 / var_decay); }

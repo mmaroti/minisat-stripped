@@ -416,15 +416,6 @@ void Solver::reduceDB()
     learnts.resize(j);
 }
 
-void Solver::rebuildOrderHeap()
-{
-    std::vector<Var> vs;
-    for (Var v = 0; v < nVars(); v++)
-        if (value(v) == l_Undef)
-            vs.push_back(v);
-    order_heap.build(vs);
-}
-
 /*_________________________________________________________________________________________________
 |
 |  simplify : [void]  ->  [bool]
