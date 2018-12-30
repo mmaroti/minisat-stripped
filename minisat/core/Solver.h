@@ -35,7 +35,7 @@ public:
   Solver();
 
   // Problem specification:
-  Lit addLiteral(bool decision = true);
+  Lit addLiteral();
   bool takeClause(std::vector<Lit> &ps);      // empties the source vector
   bool addClause();                           // make the solver contraditory
   bool addClause(Lit p);                      // add unit clause
@@ -53,10 +53,6 @@ public:
   bool okay() const; // check if solver not in contradictory
   void interrupt();  // ask solver to return cleanly
   void clearInterrupt();
-
-  // Variable mode:
-  //
-  void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
 
   // Read state:
   //
@@ -96,7 +92,7 @@ public:
   // Statistics: (read-only member variable)
   //
   long solves, starts, decisions, rnd_decisions, propagations, conflicts;
-  long dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
+  long clauses_literals, learnts_literals, max_literals, tot_literals;
 
 protected:
   // Solver state:
@@ -109,7 +105,6 @@ protected:
   double              var_inc;          // Amount to bump next variable with.
   std::vector<std::vector<Watcher>> watches; // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
   std::vector<lbool>  assigns;          // The current assignments.
-  std::vector<char>   decision;         // Declares if a variable is eligible for selection in the decision heuristic.
   std::vector<Lit>    trail;            // Assignment stack; stores all assigments made in the order they were made.
   std::vector<int>    trail_lim;        // Separator indices for different decision levels in 'trail'.
   std::vector<VarData> vardata;         // Stores reason and level for each variable.
@@ -261,7 +256,7 @@ inline void Solver::clearInterrupt() { asynch_interrupt = false; }
 // Activity
 
 inline void Solver::insertVarOrder(Var x) {
-  if (!order_heap.inHeap(x) && decision[x])
+  if (!order_heap.inHeap(x))
     order_heap.insert(x);
 }
 
@@ -298,15 +293,7 @@ inline int      Solver::nAssigns      ()      const   { return trail.size(); }
 inline int      Solver::nClauses      ()      const   { return clauses.size(); }
 inline int      Solver::nLearnts      ()      const   { return learnts.size(); }
 inline int      Solver::nVars         ()      const   { return vardata.size(); }
-inline int      Solver::nFreeVars     ()      const   { return (int)dec_vars - (trail_lim.size() == 0 ? trail.size() : trail_lim[0]); }
-inline void     Solver::setDecisionVar(Var v, bool b)
-{
-    if      ( b && !decision[v]) dec_vars++;
-    else if (!b &&  decision[v]) dec_vars--;
-
-    decision[v] = b;
-    insertVarOrder(v);
-}
+inline int      Solver::nFreeVars     ()      const   { return nVars() - (trail_lim.size() == 0 ? trail.size() : trail_lim[0]); }
 
 }
 

@@ -40,7 +40,7 @@ Solver::Solver()
 
       // Statistics
       solves(0), starts(0), decisions(0), rnd_decisions(0), propagations(0),
-      conflicts(0), dec_vars(0), clauses_literals(0), learnts_literals(0),
+      conflicts(0), clauses_literals(0), learnts_literals(0),
       max_literals(0), tot_literals(0),
 
       // State
@@ -49,7 +49,7 @@ Solver::Solver()
 
 // Problem specification:
 
-Lit Solver::addLiteral(bool dvar) {
+Lit Solver::addLiteral() {
   int v = nVars();
   int l = std::max(Lit(v, false).toInt() + 1, Lit(v, true).toInt() + 1);
   if (watches.size() < l)
@@ -59,8 +59,7 @@ Lit Solver::addLiteral(bool dvar) {
   vardata.push_back({Clause::UNDEF, 0});
   activity.push_back(rnd_init_act ? drand() * 0.00001 : 0.0);
   analyze_seen.push_back(false);
-  decision.push_back(0);
-  setDecisionVar(v, dvar);
+  insertVarOrder(v);
 
   return Lit(v, true);
 }
@@ -160,11 +159,11 @@ Lit Solver::pickBranchLit()
     // Random decision:
     if (drand() < random_var_freq && !order_heap.empty()){
         next = order_heap[irand(order_heap.size())];
-        if (value(next) == l_Undef && decision[next])
+        if (value(next) == l_Undef)
             rnd_decisions++; }
 
     // Activity based decision:
-    while (next == var_Undef || value(next) != l_Undef || !decision[next])
+    while (next == var_Undef || value(next) != l_Undef)
         if (order_heap.empty()){
             next = var_Undef;
             break;
@@ -461,7 +460,7 @@ void Solver::rebuildOrderHeap()
 {
     std::vector<Var> vs;
     for (Var v = 0; v < nVars(); v++)
-        if (decision[v] && value(v) == l_Undef)
+        if (value(v) == l_Undef)
             vs.push_back(v);
     order_heap.build(vs);
 }
