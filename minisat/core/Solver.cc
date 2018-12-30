@@ -31,7 +31,7 @@ Solver::Solver()
     : // User parameters
       var_decay(0.95), clause_decay(0.999), random_var_freq(0),
       random_seed(91648253), luby_restart(true),
-      rnd_init_act(false), garbage_frac(0.20), restart_first(100),
+      garbage_frac(0.20), restart_first(100),
       restart_inc(2),
 
       // Internal parameters
@@ -57,7 +57,7 @@ Lit Solver::addLiteral() {
 
   assigns.push_back(l_Undef);
   vardata.push_back({Clause::UNDEF, 0});
-  activity.push_back(rnd_init_act ? drand() * 0.00001 : 0.0);
+  activity.push_back(0.0);
   analyze_seen.push_back(false);
   insertVarOrder(v);
 

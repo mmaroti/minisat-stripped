@@ -78,7 +78,6 @@ public:
   double    random_var_freq;
   double    random_seed;
   bool      luby_restart;
-  bool      rnd_init_act;       // Initialize variable activities with a small random value.
   double    garbage_frac;       // The fraction of wasted memory allowed before a garbage collection is triggered.
 
   int       restart_first;      // The initial restart limit.                                                                (default 100)
