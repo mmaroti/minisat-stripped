@@ -301,45 +301,6 @@ bool Solver::litRedundant(Lit p, unsigned int abstract_levels)
 }
 
 
-/*_________________________________________________________________________________________________
-|
-|  analyzeFinal : (p : Lit)  ->  [void]
-|
-|  Description:
-|    Specialized analysis procedure to express the final conflict in terms of assumptions.
-|    Calculates the (possibly empty) set of assumptions that led to the assignment of 'p', and
-|    stores the result in 'out_conflict'.
-|________________________________________________________________________________________________@*/
-void Solver::analyzeFinal(Lit p, std::vector<Lit>& out_conflict)
-{
-    out_conflict.clear();
-    out_conflict.push_back(p);
-
-    if (decisionLevel() == 0)
-        return;
-
-    analyze_seen[p.var()] = true;
-
-    for (int i = trail.size()-1; i >= trail_lim[0]; i--){
-        Var x = trail[i].var();
-        if (analyze_seen[x]){
-            if (reason(x) == Clause::UNDEF){
-                assert(level(x) > 0);
-                out_conflict.push_back(~trail[i]);
-            }else{
-                Clause& c = *reason(x);
-                for (int j = 1; j < c.size(); j++)
-                    if (level(c[j].var()) > 0)
-                        analyze_seen[c[j].var()] = true;
-            }
-            analyze_seen[x] = false;
-        }
-    }
-
-    analyze_seen[p.var()] = false;
-}
-
-
 void Solver::uncheckedEnqueue(Lit p, CRef from)
 {
     assert(value(p) == l_Undef);

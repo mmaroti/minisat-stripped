@@ -130,7 +130,6 @@ protected:
   CRef     propagate        ();                                                      // Perform unit propagation. Returns possibly conflicting clause.
   void     cancelUntil      (int level);                                             // Backtrack until a certain level.
   void     analyze          (CRef confl, std::vector<Lit>& out_learnt, int& out_btlevel); // (bt = backtrack)
-  void     analyzeFinal     (Lit p, std::vector<Lit>& out_conflict);                 // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
   bool     litRedundant     (Lit p, unsigned int abstract_levels);                            // (helper method for 'analyze()')
   lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
   lbool    solve_           ();                                                      // Main solve method
