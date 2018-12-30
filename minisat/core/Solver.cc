@@ -44,7 +44,7 @@ Solver::Solver()
 
       // State
       ok(true), cla_inc(1), var_inc(1), watches(), qhead(0), simpDB_assigns(-1),
-      simpDB_props(0), order_heap({activity}), asynch_interrupt(false) {}
+      simpDB_props(0), order_heap({activity}) {}
 
 // Problem specification:
 
@@ -511,7 +511,7 @@ lbool Solver::search(int nof_conflicts)
 
         }else{
             // NO CONFLICT
-            if (nof_conflicts >= 0 && (conflictC >= nof_conflicts || asynch_interrupt)){
+            if (nof_conflicts >= 0 && conflictC >= nof_conflicts){
                 // Reached bound on number of conflicts:
                 cancelUntil(0);
                 return l_Undef; }
@@ -585,7 +585,6 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (asynch_interrupt) break;
         curr_restarts++;
     }
 

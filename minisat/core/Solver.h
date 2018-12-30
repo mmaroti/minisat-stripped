@@ -115,10 +115,6 @@ protected:
   double              learntsize_adjust_confl;
   int                 learntsize_adjust_cnt;
 
-  // Resource contraints:
-  //
-  bool                asynch_interrupt;
-
   // Main internal methods:
   //
   std::vector<Watcher>& occurences(Lit p) { return watches[p.toInt()]; }             // occurence list lookup
@@ -211,10 +207,6 @@ inline bool Solver::solve() {
 }
 
 inline bool Solver::okay() const { return ok; }
-
-inline void Solver::interrupt() { asynch_interrupt = true; }
-
-inline void Solver::clearInterrupt() { asynch_interrupt = false; }
 
 // Activity
 
