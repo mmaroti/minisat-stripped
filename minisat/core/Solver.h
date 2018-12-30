@@ -72,7 +72,6 @@ public:
   double    random_var_freq;
   double    random_seed;
   bool      luby_restart;
-  double    garbage_frac;       // The fraction of wasted memory allowed before a garbage collection is triggered.
 
   int       restart_first;      // The initial restart limit.                                                                (default 100)
   double    restart_inc;        // The factor with which the restart limit is multiplied in each restart.                    (default 1.5)

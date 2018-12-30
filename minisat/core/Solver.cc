@@ -31,8 +31,7 @@ Solver::Solver()
     : // User parameters
       var_decay(0.95), clause_decay(0.999), random_var_freq(0),
       random_seed(91648253), luby_restart(true),
-      garbage_frac(0.20), restart_first(100),
-      restart_inc(2),
+      restart_first(100), restart_inc(2),
 
       // Internal parameters
       learntsize_factor(1.0 / 3.0), learntsize_inc(1.1),
